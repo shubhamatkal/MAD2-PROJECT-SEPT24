@@ -1,0 +1,7 @@
+# Ignore the instance folder
+instance/
+
+# Ignore the uploads folder inside the static directory
+static/uploads/
+backend/__pycache__
+__pycache__
