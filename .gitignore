@@ -5,3 +5,6 @@ instance/
 static/uploads/
 backend/__pycache__
 __pycache__
+
+# Ensure that the static folder itself is tracked
+!static/
