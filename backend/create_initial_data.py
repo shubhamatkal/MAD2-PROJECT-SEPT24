@@ -1,4 +1,5 @@
-from werkzeug.security import generate_password_hash  # For hashing passwords
+# from werkzeug.security import generate_password_hash  # For hashing passwords
+from flask_security import auth_required, verify_password, hash_password
 from app import app, db  # Ensure you import your app and db objects
 from backend.models import Admin, Role  # Import the models you need to create
 import uuid
@@ -26,8 +27,8 @@ with app.app_context():
     existing_admin = Admin.query.filter_by(email=admin_email).first()
 
     if not existing_admin:
-        hashed_password = generate_password_hash(admin_password)
-        new_admin = Admin(email=admin_email, password=hashed_password, full_name="Shubham Admin", role_id=0,fs_uniquifier=str(uuid.uuid4()))
+        hashed_password = hash_password(admin_password)
+        new_admin = Admin(email=admin_email, password=hashed_password, full_name="Shubham Atkal", role_id=0,fs_uniquifier=str(uuid.uuid4()))
         db.session.add(new_admin)
 
     # Commit all changes to the database

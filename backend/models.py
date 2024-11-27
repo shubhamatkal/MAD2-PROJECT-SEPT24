@@ -1,9 +1,10 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_security import RoleMixin
+from flask_security import UserMixin, RoleMixin
 db = SQLAlchemy()
 
 # Admin Model
-class Admin(db.Model):
+class Admin(UserMixin,db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
@@ -15,7 +16,7 @@ class Admin(db.Model):
         return f"<Admin {self.email}>"
 
 # Customer Model
-class Customer(db.Model):
+class Customer(UserMixin,db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
@@ -31,13 +32,13 @@ class Customer(db.Model):
         return f"<Customer {self.email}>"
 
 # Professional Model
-class Professional(db.Model):
+class Professional(UserMixin,db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(100), unique=True, nullable=False)  # Email acts as user_id
     password = db.Column(db.String(255), nullable=False)
     full_name = db.Column(db.String(100), nullable=False)
     service_name = db.Column(db.String(100), nullable=False)  # Dropdown choices to be handled in forms
-    experience = db.Column(db.Float(precision=2), nullable=False, help_text="Years of experience")
+    experience = db.Column(db.Float(precision=2), nullable=False)
     document_path = db.Column(db.String(255), nullable=True)  # Path to the uploaded document
     address = db.Column(db.String(255), nullable=False)
     pin_code = db.Column(db.String(20), nullable=False)
