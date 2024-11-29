@@ -1,16 +1,17 @@
-const Home = {
-    template : `<h1> this is home </h1>`
-}
 import LoginPage from "../pages/LoginPage.js";
-import RegisterPage from "../pages/RegisterPage.js";
+import RegisterCustomer from "../pages/Register-Customer.js";
 import AdminHome from "../pages/admin-home.js";
-
+import HomeCustomer from "../pages/home-customer.js";
+import Home from "../pages/home.js";
+import ProfessionalRegister from "../pages/pro-reg.js";
 
 const routes = [
     {path : '/', component : Home},
     {path : '/login', component : LoginPage},
-    {path : '/register-customer', component : RegisterPage},
-    {path : '/admin-home', component : AdminHome}
+    {path : '/register-customer', component : RegisterCustomer},
+    {path : '/admin-home', component : AdminHome},
+    {path : '/home-customer', component : HomeCustomer},
+    {path : '/professional-register', component : ProfessionalRegister}
 ]
 
 const router = new VueRouter({

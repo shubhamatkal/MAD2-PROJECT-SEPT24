@@ -35,6 +35,7 @@ def custom_verify_password(email, password):
     return None
 
 def find_user(email):
+    print("inside find user")
     # Search in Admin table
     user = db.session.query(Admin).filter_by(email=email).first()
     if user:
@@ -46,7 +47,7 @@ def find_user(email):
         return user
 
     # Search in Professional table
-    user = db.session.query(Professional).filter_by(email=email).first()
+    user = db.session.query(Professional).filter_by(user_id=email).first()
     return user
 
 

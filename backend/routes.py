@@ -1,11 +1,24 @@
-from flask import current_app as app, jsonify, render_template,  request
+import os 
+from flask import Flask, render_template, jsonify
+from flask import current_app as app, jsonify,request, redirect, url_for, flash
 from flask_security import auth_required, verify_password, hash_password
-from backend.models import db, Customer
+from backend.models import db, Customer, Professional
+from werkzeug.utils import secure_filename
 from backend.auth_utils import custom_verify_password, find_user
 from datetime import datetime
 from backend.celery.tasks import add, create_csv
 from celery.result import AsyncResult
-print("routes")
+import uuid
+
+def generate_uniqifier():
+    return str(uuid.uuid4())
+
+UPLOAD_FOLDER = 'static/uploads'
+ALLOWED_EXTENSIONS = {'pdf'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 def get_cache():
     return app.cache
@@ -86,10 +99,10 @@ def register_routes(app):
     @app.route('/register-customer', methods=['POST'])
     def register():
         data = request.get_json()
-
+        print(data)
         email = data.get('email')
         password = data.get('password')
-        fullname = data.get('fullname')
+        fullname = data.get('fullName')
         address = data.get('address')
         pincode = data.get('pincode')
         
@@ -97,14 +110,63 @@ def register_routes(app):
 
         if user:
             return jsonify({"message" : "user already exists"}), 404
-
+        print("user not found")
         new_customer = Customer(email = email, password = hash_password(password), 
-		fullname = fullname, address = address, pincode = pincode)
+		full_name = fullname, address = address, pin_code = pincode, is_active = True, role_id = 1, fs_uniquifier = generate_uniqifier())
         db.session.add(new_customer)
         # Commit the transaction to save the customer in the database
+        print("committing")
         try:
             db.session.commit()
             return jsonify({"message": "Customer registered successfully"}), 201
         except Exception as e:
+            print(e)
             db.session.rollback()
             return jsonify({"message": "Error registering customer", "error": str(e)}), 500
+
+
+    @app.route('/pro-reg', methods=['POST'])
+    def pro_reg():
+        if 'email' not in request.form or 'password' not in request.form or 'fullname' not in request.form:
+            return jsonify({"error": "Missing required fields"}), 400
+
+        email = request.form['email']
+        password = hash_password(request.form['password'])
+        fullname = request.form['fullname']
+        service = request.form['service']
+        experience = request.form['experience']
+        address = request.form['address']
+        pincode = request.form['pincode']
+
+        # Check if user already exists
+        if find_user(email):
+            flash("User already exists. Please login.", "error")
+            return redirect(url_for('login'))
+
+        # Handle file upload
+        file = request.files['document']
+        if file and allowed_file(file.filename):
+            filename = secure_filename(f"{email}.pdf")
+            filepath = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(filepath)
+        else:
+            return jsonify({"error": "Invalid file format. Only PDFs allowed."}), 400
+
+        # Create new Professional
+        new_professional = Professional(
+            email=email,
+            password=password,
+            fullname=fullname,
+            service=service,
+            experience=experience,
+            address=address,
+            pincode=pincode,
+            document_path=filepath
+        )
+        
+        # Save to database
+        db.session.add(new_professional)
+        db.session.commit()
+
+        flash("Registration completed successfully. Please wait for admin approval.", "success")
+        return redirect(url_for('login'))

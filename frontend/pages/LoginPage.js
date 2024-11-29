@@ -36,7 +36,7 @@ export default {
                             this.$router.push('/admin-home'); // Redirect for Admin
                             break;
                         case 1:
-                            this.$router.push('/customer-home'); // Redirect for Customer
+                            this.$router.push('/home-customer'); // Redirect for Customer
                             break;
                         case 2:
                             this.$router.push('/professional-home'); // Redirect for Professional
