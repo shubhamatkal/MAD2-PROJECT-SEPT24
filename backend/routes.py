@@ -2,10 +2,13 @@ from flask import current_app as app, jsonify, render_template,  request
 from flask_security import auth_required, verify_password, hash_password
 from backend.models import db, Customer
 from backend.auth_utils import custom_verify_password, find_user
-
+from datetime import datetime
+from backend.celery.tasks import add, create_csv
+from celery.result import AsyncResult
 print("routes")
 
-
+def get_cache():
+    return app.cache
 # Function to register all routes
 def register_routes(app):
     @app.route('/')
@@ -22,6 +25,31 @@ def register_routes(app):
 #     # return render_template('index.html')
 
     @app.get('/protected')
+
+    @app.get('/celery')
+    def celery():
+        result = add.delay(1, 2)
+        return jsonify({'task_id': result.id})
+
+    @app.get('/get-data/<id>')
+    def get_data(id):
+        result  = AsyncResult(id)
+        if result.ready():
+            return jsonify({'result': result.get()})
+        else:
+            return jsonify({'status': 'processing'})
+
+    @app.get('/cache')
+    @app.cache.cached(timeout=5)
+    def cache():
+        # cache = get_cache()  # Access cache within the context
+        return {'time': str(datetime.now())}
+
+    @app.get('/create-csv')
+    def createCSV():
+        task = create_csv.delay()
+        return {'task_id': task.id}, 200
+
     @auth_required('token')
     def protected():
         return '<h1> only accessible by auth user</h1>'

@@ -10,6 +10,7 @@ class Admin(UserMixin,db.Model):
     password = db.Column(db.String(255), nullable=False)
     full_name = db.Column(db.String(100), nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'), nullable=False, server_default='0')
+    active = db.Column(db.Boolean, default=True)
     # Adding fs_uniquifier field
     fs_uniquifier = db.Column(db.String(255), unique=True, nullable=False)
     def __repr__(self):

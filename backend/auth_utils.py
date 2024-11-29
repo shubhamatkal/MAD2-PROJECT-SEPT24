@@ -1,6 +1,9 @@
 from flask_security.datastore import SQLAlchemyUserDatastore
 from flask_security.utils import verify_password
 from backend.models import db, Admin, Customer, Professional
+from functools import wraps
+from flask import abort
+from flask_security import auth_required, current_user
 
 # Custom datastore to search across multiple tables
 class MultiTableUserDatastore(SQLAlchemyUserDatastore):
@@ -45,3 +48,18 @@ def find_user(email):
     # Search in Professional table
     user = db.session.query(Professional).filter_by(email=email).first()
     return user
+
+
+
+
+def role_required(*roles):
+    def decorator(f):
+        print("inside decorator")
+        @wraps(f)
+        @auth_required('token')
+        def decorated_function(*args, **kwargs):
+            if current_user.role_id not in roles:
+                abort(403, description="Access forbidden: You do not have the necessary permissions.")
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator### List APIs (Fetching all records)
