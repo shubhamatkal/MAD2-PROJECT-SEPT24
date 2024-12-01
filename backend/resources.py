@@ -1,6 +1,6 @@
 from flask import jsonify, request
 from flask_restful import Api, Resource, fields, marshal_with
-from flask_security import auth_required, current_user
+# from flask_security import auth_required, current_user
 from flask import current_app as app
 from backend.models import Service, Professional, ServiceRequest, db
 from backend.auth_utils import role_required
@@ -45,14 +45,14 @@ service_requests_fields = {
 class ServiceAPI(Resource):
 
     @marshal_with(services_fields)
-    @auth_required('token')
+    # @auth_required('token')
     def get(self, service_id):
         service = Service.query.get(service_id)
         if not service:
             return {"message": "Service not found"}, 404
         return service
 
-    @auth_required('token')
+    # @auth_required('token')
     def delete(self, service_id):
         service = Service.query.get(service_id)
         if not service:
@@ -65,18 +65,17 @@ class ServiceAPI(Resource):
 
 ### List APIs (Fetching all records)
 class ServiceListAPI(Resource):
-
+    print("inside service list api")
     @marshal_with(services_fields)
-    @auth_required('token')
-    @role_required(0)
-    @cache.cached(timeout = 5, key_prefix = "services")
+    # @auth_required('token')
+    # @cache.cached(timeout = 5, key_prefix = "services")
     def get(self):
         print("inside get of services")
         services = Service.query.all()
         print(services, "this is services")
         return services
 
-    @auth_required('token')
+    # @auth_required('token')
     def post(self):
         data = request.get_json()
         service = Service(name=data['name'], base_price=data['base_price'], description=data['description'])
@@ -90,12 +89,12 @@ class ServiceListAPI(Resource):
 class ProfessionalListAPI(Resource):
 
     @marshal_with(professionals_fields)
-    @auth_required('token')
+    # @auth_required('token')
     def get(self):
         professionals = Professional.query.all()
         return professionals
 
-    @auth_required('token')
+    # @auth_required('token')
     def post(self):
         data = request.get_json()
         professional = Professional(
@@ -115,12 +114,12 @@ class ProfessionalListAPI(Resource):
 class ServiceRequestListAPI(Resource):
 
     @marshal_with(service_requests_fields)
-    @role_required(0)
+    # @auth_required('token')
     def get(self):
         requests = ServiceRequest.query.all()
         return requests
 
-    @role_required(0)
+    # @role_required(0)
     def post(self):
         data = request.get_json()
         service_request = ServiceRequest(
@@ -140,14 +139,14 @@ class ServiceRequestListAPI(Resource):
 class ProfessionalAPI(Resource):
 
     @marshal_with(professionals_fields)
-    @auth_required('token')
+    # @auth_required('token')
     def get(self, professional_id):
         professional = Professional.query.get(professional_id)
         if not professional:
             return {"message": "Professional not found"}, 404
         return professional
 
-    @auth_required('token')
+    # @auth_required('token')
     def delete(self, professional_id):
         professional = Professional.query.get(professional_id)
         if not professional:
@@ -161,14 +160,14 @@ class ProfessionalAPI(Resource):
 class ServiceRequestAPI(Resource):
 
     @marshal_with(service_requests_fields)
-    @auth_required('token')
+    # @auth_required('token')
     def get(self, request_id):
         request = ServiceRequest.query.get(request_id)
         if not request:
             return {"message": "Service request not found"}, 404
         return request
 
-    @auth_required('token')
+    # @auth_required('token')
     def delete(self, request_id):
         request = ServiceRequest.query.get(request_id)
         if not request:

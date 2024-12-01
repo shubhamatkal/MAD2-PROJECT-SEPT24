@@ -58,53 +58,53 @@ export default {
   },
   computed: {
     firstName() {
-      return store.state.name.split(' ')[0]; // Extract the first name
+      return this.$store.state.name.split(' ')[0]; // Extract the first name
     },
   },
   methods: {
+    async loadServicesAndRequests() {
+        try {
+            const servicesData = await this.fetchServices();
+            this.services = servicesData; // Assign resolved data
+            console.log(this.services);
+
+            const serviceRequestsData = await this.fetchServiceRequests();
+            this.serviceRequests = serviceRequestsData; // Assign resolved data
+            console.log(this.serviceRequests);
+        } catch (error) {
+            console.error("Error loading services or requests:", error);
+        }
+    },
     async fetchServices() {
+      console.log(this.$store.state.auth_token);
       try {
+        console.log('fetchServices');
         const response = await fetch('/api/services', {
-          method: 'GET',
           headers: {
-            'Authentication-Token' : this.$store.state.auth_token
+            'Authentication-Token' : this.$store.state.auth_token,
           },
         });
-        if (!response.ok) {
-          throw new Error('Error fetching services');
-        }
-        const data = await response.json();
-        this.services = data;
+        return await response.json();
       } catch (error) {
-        console.error('Error fetching services:', error);
-      }
+        console.error("Error fetching data:", error);
+    }
     },
     async fetchServiceRequests() {
       try {
         const response = await fetch('/api/service_requests', {
-          method: 'GET',
           headers: {
             'Authentication-Token' : this.$store.state.auth_token
           },
         });
-        if (!response.ok) {
-          throw new Error('Error fetching service requests');
-        }
-        const data = await response.json();
-        this.serviceRequests = data.map((request) => ({
-          ...request,
-          service_name: request.service.name,
-          professional_name: request.professional.name,
-          phone: request.professional.phone,
-          status: request.service_status,
-        }));
+        return await response.json();
       } catch (error) {
-        console.error('Error fetching service requests:', error);
-      }
+        console.error("Error fetching data:", error);
+    }
     },
   },
   mounted() {
-    this.fetchServices();
-    this.fetchServiceRequests();
+    console.log('HomeCustomer mounted');
+
+    this.loadServicesAndRequests();
   },
 };

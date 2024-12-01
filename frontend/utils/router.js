@@ -4,6 +4,7 @@ import AdminHome from "../pages/admin-home.js";
 import HomeCustomer from "../pages/home-customer.js";
 import Home from "../pages/home.js";
 import ProfessionalRegister from "../pages/pro-reg.js";
+import Profile from "../pages/profile.js";
 
 const routes = [
     {path : '/', component : Home},
@@ -11,7 +12,8 @@ const routes = [
     {path : '/register-customer', component : RegisterCustomer},
     {path : '/admin-home', component : AdminHome},
     {path : '/home-customer', component : HomeCustomer},
-    {path : '/professional-register', component : ProfessionalRegister}
+    {path : '/professional-register', component : ProfessionalRegister},
+    {path : '/profile', component : Profile},
 ]
 
 const router = new VueRouter({

@@ -67,6 +67,12 @@ def register_routes(app):
     def protected():
         return '<h1> only accessible by auth user</h1>'
 
+    # @app.route('/login', methods=['GET'])
+    # def dummy_login():
+    #     return jsonify({"message": "Login page is handled by frontend."}), 404
+ 
+
+    
     @app.route('/login', methods=['POST'])
     def login():
         print("login")

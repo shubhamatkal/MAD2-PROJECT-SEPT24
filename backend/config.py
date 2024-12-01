@@ -1,3 +1,4 @@
+
 class Config():
     DEBUG = False
     SQL_ALCHEMY_TRACK_MODIFICATIONS = False
@@ -12,3 +13,5 @@ class LocalDevelopmentConfig(Config):
     CACHE_REDIS_PORT = 6379
     CACHE_DEFAULT_TIMEOUT = 30
     WTF_CSRF_ENABLED = False
+    SECURITY_UNAUTHORIZED_VIEW = None  # Prevent Flask-Security from redirecting on unauthorized access
+    SECURITY_REDIRECT_BEHAVIOR = "spa"  # Single Page Application mode to prevent redirects

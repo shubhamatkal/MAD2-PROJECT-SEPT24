@@ -31,6 +31,7 @@ const store = new Vuex.Store({
             state.user_id = null;
 
             localStorage.removeItem('user')
+            console.log('removed user from local storage, and state')
         }
     },
     actions : {
