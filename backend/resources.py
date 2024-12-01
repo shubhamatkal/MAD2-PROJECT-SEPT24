@@ -43,24 +43,72 @@ service_requests_fields = {
 
 ### Services API
 class ServiceAPI(Resource):
+    # @marshal_with(services_fields)
+    def put(self, service_id):
+    # Update existing service
+    # if not current_user.is_admin:
+    #     return {"message": "Unauthorized"}, 403
+    
+        service = Service.query.get_or_404(service_id)
+        
+        data = request.json
+        
+        try:
+            service.name = data['name']
+            service.price = data['base_price']
+            service.time_required = data['time_required']
+            service.description = data['description']
+            
+            db.session.commit()
+            
+            return {
+                "id": service.id,
+                "name": service.name,
+                "base_price": service.price,
+                "time_required": service.time_required,
+                "description": service.description
+            }, 200
+        
+        except Exception as e:
+            db.session.rollback()
+            return {"message": str(e)}, 500
 
-    @marshal_with(services_fields)
-    # @auth_required('token')
-    def get(self, service_id):
-        service = Service.query.get(service_id)
-        if not service:
-            return {"message": "Service not found"}, 404
-        return service
-
-    # @auth_required('token')
+    # @login_required
+    # @marshal_with(services_fields)
     def delete(self, service_id):
-        service = Service.query.get(service_id)
-        if not service:
-            return {"message": "Service not found"}, 404
+        # Delete service
+        # if not current_user.is_admin:
+        #     return {"message": "Unauthorized"}, 403
+        
+        service = Service.query.get_or_404(service_id)
+        
+        try:
+            db.session.delete(service)
+            db.session.commit()
+            return {"message": "Service deleted successfully"}, 200
+        
+        except Exception as e:
+            db.session.rollback()
+            return {"message": str(e)}, 500
 
-        db.session.delete(service)
-        db.session.commit()
-        return {"message": "Service deleted"}
+
+
+    # # @auth_required('token')
+    # def get(self, service_id):
+    #     service = Service.query.get(service_id)
+    #     if not service:
+    #         return {"message": "Service not found"}, 404
+    #     return service
+
+    # # @auth_required('token')
+    # def delete(self, service_id):
+    #     service = Service.query.get(service_id)
+    #     if not service:
+    #         return {"message": "Service not found"}, 404
+
+    #     db.session.delete(service)
+    #     db.session.commit()
+    #     return {"message": "Service deleted"}
 
 
 ### List APIs (Fetching all records)
@@ -77,11 +125,46 @@ class ServiceListAPI(Resource):
 
     # @auth_required('token')
     def post(self):
-        data = request.get_json()
-        service = Service(name=data['name'], base_price=data['base_price'], description=data['description'])
-        db.session.add(service)
-        db.session.commit()
-        return {"message": "Service created"}
+        print("inside post of services")
+        data = request.json
+        print(data, "this is data")
+        # Validate input
+        if not all(key in data for key in ['name', 'base_price', 'time_required', 'description']):
+            return jsonify({"message": "Missing required fields"}), 400
+        print("No missing fields")
+        try:
+            # Create new service
+            new_service = Service(
+                name=data['name'],
+                price=data['base_price'],
+                time_required=data['time_required'],
+                description=data['description']
+            )
+            
+            # Add to database
+            db.session.add(new_service)
+            db.session.commit()
+            
+            # Return the newly created service
+            return {
+                "id": new_service.id,
+                "name": new_service.name,
+                "base_price": new_service.price,  # Make sure this matches your model's attribute
+                "time_required": new_service.time_required,
+                "description": new_service.description
+            }, 201
+
+        
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"message": "Error creating service", "error": str(e)}), 500
+
+
+        # data = request.get_json()
+        # service = Service(name=data['name'], base_price=data['base_price'], description=data['description'])
+        # db.session.add(service)
+        # db.session.commit()
+        # return {"message": "Service created"}
 
 
 

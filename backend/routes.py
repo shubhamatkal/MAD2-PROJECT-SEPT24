@@ -194,3 +194,40 @@ def register_routes(app):
 
         # flash("Registration completed successfully. Please wait for admin approval.", "success")
         # return redirect(url_for('login'))
+    @app.route('/api/services', methods=['POST'])
+    def create_service():
+        # Ensure only admin can create services
+        # if not current_user.is_admin:
+        #     return jsonify({"message": "Unauthorized"}), 403
+        
+        data = request.json
+        
+        # Validate input
+        if not all(key in data for key in ['name', 'base_price', 'time_required', 'description']):
+            return jsonify({"message": "Missing required fields"}), 400
+        
+        try:
+            # Create new service
+            new_service = Service(
+                name=data['name'],
+                price=data['base_price'],
+                time_required=data['time_required'],
+                description=data['description']
+            )
+            
+            # Add to database
+            db.session.add(new_service)
+            db.session.commit()
+            
+            # Return the newly created service
+            return jsonify({
+                "id": new_service.id,
+                "name": new_service.name,
+                "base_price": new_service.base_price,
+                "time_required": new_service.time_required,
+                "description": new_service.description
+            }), 201
+        
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"message": "Error creating service", "error": str(e)}), 500
