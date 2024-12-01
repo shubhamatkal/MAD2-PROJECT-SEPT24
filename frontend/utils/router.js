@@ -5,6 +5,8 @@ import HomeCustomer from "../pages/home-customer.js";
 import Home from "../pages/home.js";
 import ProfessionalRegister from "../pages/pro-reg.js";
 import Profile from "../pages/profile.js";
+import HomeProfessional from "../pages/pro-home.js";
+
 
 const routes = [
     {path : '/', component : Home},
@@ -14,6 +16,7 @@ const routes = [
     {path : '/home-customer', component : HomeCustomer},
     {path : '/professional-register', component : ProfessionalRegister},
     {path : '/profile', component : Profile},
+    {path : '/professional-home', component : HomeProfessional}
 ]
 
 const router = new VueRouter({

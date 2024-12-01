@@ -14,7 +14,7 @@ export default {
         <h2>Professionals</h2>
         <ul v-if="professionals.length">
             <li v-for="professional in professionals" :key="professional.id">
-                {{ professional.fullname }} ({{ professional.email }})
+                {{ professional.full_name }} ({{ professional.user_id }})
             </li>
         </ul>
     </div>

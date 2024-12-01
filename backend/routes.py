@@ -88,9 +88,12 @@ def register_routes(app):
         print(password, "this is enteredt password")
         user = custom_verify_password(email, password)
         print(user.full_name, "this is user")
-        if user:
+        if user.role_id == 2:
             return jsonify({'token' : user.get_auth_token(), 'email' : user.user_id, 'role' : user.role_id,
 			 'id' : user.id, 'fullname' : user.full_name})
+        elif user.role_id == 0 or user.role_id == 1:
+            return jsonify({'token' : user.get_auth_token(), 'email' : user.email, 'role' : user.role_id,
+                'id' : user.id, 'fullname' : user.full_name})
         return jsonify({"message": "Invalid credentials"}), 401
 
         # if not user:

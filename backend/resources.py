@@ -21,8 +21,8 @@ services_fields = {
 
 professionals_fields = {
     'id': fields.Integer,
-    'name': fields.String,
-    'email': fields.String,
+    'full_name': fields.String,
+    'user_id': fields.String,
     'experience': fields.Integer,
     'service_name': fields.String,
     'document_path': fields.String,
@@ -92,14 +92,15 @@ class ProfessionalListAPI(Resource):
     # @auth_required('token')
     def get(self):
         professionals = Professional.query.all()
+        print(professionals, "this is professionals")
         return professionals
 
     # @auth_required('token')
     def post(self):
         data = request.get_json()
         professional = Professional(
-            name=data['name'],
-            email=data['email'],
+            name=data['full_name'],
+            email=data['user_id'],
             experience=data['experience'],
             service_name=data['service_name'],
             document_path=data['document_path'],

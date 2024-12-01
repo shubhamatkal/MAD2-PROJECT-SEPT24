@@ -7,7 +7,7 @@ export default {
   
         <!-- Show these links when the user is logged in -->
         <div v-if="isLoggedIn">
-          <router-link v-if="userRole === 0" to="/home-admin">Admin Home</router-link>
+          <router-link v-if="userRole === 0" to="/admin-home">Admin Home</router-link>
           <router-link v-if="userRole === 1" to="/home-customer">Customer Home</router-link>
           <router-link v-if="userRole === 2" to="/home-professional">Professional Home</router-link>
           
