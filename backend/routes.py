@@ -89,7 +89,7 @@ def register_routes(app):
         user = custom_verify_password(email, password)
         print(user.full_name, "this is user")
         if user:
-            return jsonify({'token' : user.get_auth_token(), 'email' : user.email, 'role' : user.role_id,
+            return jsonify({'token' : user.get_auth_token(), 'email' : user.user_id, 'role' : user.role_id,
 			 'id' : user.id, 'fullname' : user.full_name})
         return jsonify({"message": "Invalid credentials"}), 401
 
@@ -145,10 +145,12 @@ def register_routes(app):
         pincode = request.form['pincode']
 
         # Check if user already exists
-        if find_user(email):
-            flash("User already exists. Please login.", "error")
-            return redirect(url_for('login'))
-
+        user = find_user(email)
+            # flash("User already exists. Please login.", "error")
+            # return redirect(url_for('login'))
+        if user:
+            return jsonify({"message" : "user already exists"}), 404
+        print("user not found")
         # Handle file upload
         file = request.files['document']
         if file and allowed_file(file.filename):
@@ -160,19 +162,32 @@ def register_routes(app):
 
         # Create new Professional
         new_professional = Professional(
-            email=email,
+            user_id=email,
             password=password,
-            fullname=fullname,
-            service=service,
+            full_name=fullname,
+            service_name=service,
             experience=experience,
             address=address,
-            pincode=pincode,
-            document_path=filepath
+            pin_code=pincode,
+            role_id = 2,
+            document_path=filepath,
+            fs_uniquifier=generate_uniqifier()
         )
         
         # Save to database
         db.session.add(new_professional)
-        db.session.commit()
 
-        flash("Registration completed successfully. Please wait for admin approval.", "success")
-        return redirect(url_for('login'))
+
+        try:
+            db.session.commit()
+            return jsonify({"message": "Customer registered successfully"}), 201
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            return jsonify({"message": "Error registering customer", "error": str(e)}), 500
+
+
+        # db.session.commit()
+
+        # flash("Registration completed successfully. Please wait for admin approval.", "success")
+        # return redirect(url_for('login'))

@@ -57,17 +57,50 @@ export default {
 	  };
 	},
 	methods: {
-	  async fetchServices() {
-		try {
-		  const response = await fetch('/services', {
-			headers: { 'Authorization': `Bearer ${store.state.auth_token}` }
-		  });
-		  const data = await response.json();
-		  this.services = data;
-		} catch (error) {
-		  console.error('Error fetching services:', error);
+		async loadServicesAndRequests() {
+			try {
+				const servicesData = await this.fetchServices();
+				this.services = servicesData; // Assign resolved data
+				console.log(this.services);
+	
+				const serviceRequestsData = await this.fetchServiceRequests();
+				this.serviceRequests = serviceRequestsData; // Assign resolved data
+				console.log(this.serviceRequests);
+			} catch (error) {
+				console.error("Error loading services or requests:", error);
+			}
+		},
+		async fetchServices() {
+		  console.log(this.$store.state.auth_token);
+		  try {
+			console.log('fetchServices');
+			const response = await fetch('/api/services', {
+			  headers: {
+				'Authentication-Token' : this.$store.state.auth_token,
+			  },
+			});
+			return await response.json();
+		  } catch (error) {
+			console.error("Error fetching data:", error);
 		}
-	  },
+		},
+
+
+
+		// async fetchServices() {
+		// 	console.log(this.$store.state.auth_token);
+		// 	try {
+		// 	  console.log('fetchServices');
+		// 	  const response = await fetch('/api/services', {
+		// 		headers: {
+		// 		  'Authentication-Token' : this.$store.state.auth_token,
+		// 		},
+		// 	  });
+		// 	  return await response.json();
+		// 	} catch (error) {
+		// 	  console.error("Error fetching data:", error);
+		//   }
+		//   },
 	  handleFileUpload(event) {
 		this.document = event.target.files[0];
 	  },
@@ -83,24 +116,41 @@ export default {
 		formData.append('pincode', this.pincode);
   
 		try {
-		  const response = await fetch('/pro-reg', {
+		  const res = await fetch('/pro-reg', {
 			method: 'POST',
 			body: formData
 		  });
   
-		  if (response.ok) {
-			console.log('Professional registered successfully');
-			// Optionally redirect to a success or login page
-		  } else {
-			console.error('Error registering professional');
-		  }
+		  if (res.ok) {
+			console.log('Registration successful');
+			alert('You have registered successfully! Redirecting to login, kindly wait for approval from admin...');
+			window.location.href = '/#/login'; // Redirect to the login page
+		} else {
+			const responseData = await res.json();
+			if (responseData.message === 'user already exists') {
+				alert('User already exists. Redirecting to login...');
+				window.location.href = '/#/login'; // Redirect to the login page
+			} else {
+				alert('Registration failed. Please try again.');
+			}
+		}
 		} catch (error) {
 		  console.error('Error during registration:', error);
 		}
 	  }
 	},
 	mounted() {
-	  this.fetchServices();
+
+		console.log('HomeCustomer mounted');
+
+		this.loadServicesAndRequests();
+
+
+	// //   this.fetchServices();
+	//   const servicesData = this.fetchServices();
+	//   this.services = servicesData; // Assign resolved data
+	//   console.log(this.services);
+	// //   console.log(this.services);
 	}
   };
   

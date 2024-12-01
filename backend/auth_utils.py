@@ -18,9 +18,10 @@ class MultiTableUserDatastore(SQLAlchemyUserDatastore):
         if user:
             return user
 
-        # Search in Professional table
-        user = db.session.query(Professional).filter_by(**kwargs).first()
-        return user
+        # Search in Professional table using user_id
+        if 'email' in kwargs:
+            user = db.session.query(Professional).filter_by(user_id=kwargs['email']).first()
+            return user
 
 # Custom function to verify user password
 def custom_verify_password(email, password):
