@@ -2,8 +2,10 @@ from flask import jsonify, request
 from flask_restful import Api, Resource, fields, marshal_with
 # from flask_security import auth_required, current_user
 from flask import current_app as app
-from backend.models import Service, Professional, ServiceRequest, db
+from backend.models import Service, Professional, ServiceRequest, db, Customer
 from backend.auth_utils import role_required
+from flask_restful import reqparse
+
 
 cache = app.cache
 
@@ -15,7 +17,8 @@ api = Api(prefix='/api')
 services_fields = {
     'id': fields.Integer,
     'name': fields.String,
-    'base_price': fields.Float,
+    'price': fields.Float,
+    'time_required': fields.String,
     'description': fields.String,
 }
 
@@ -28,13 +31,14 @@ professionals_fields = {
     'document_path': fields.String,
     'address': fields.String,
     'pincode': fields.String,
+    'is_approved': fields.Integer,
 }
 
 service_requests_fields = {
     'id': fields.Integer,
-    'service_id': fields.Integer,
-    'customer_id': fields.Integer,
-    'professional_id': fields.Integer,
+    'service_name': fields.String,
+    'customer_name': fields.String,
+    'professional_name': fields.String,
     'date_of_request': fields.DateTime,
     'date_of_completion': fields.DateTime,
     'service_status': fields.String,
@@ -120,7 +124,15 @@ class ServiceListAPI(Resource):
     def get(self):
         print("inside get of services")
         services = Service.query.all()
+        print("======")
+        print(type(services), "this is type of services")
         print(services, "this is services")
+        for service in services:
+            print(service)
+            print(service.name)
+            print(service.price)
+            print(service.time_required)
+            print(service.description)
         return services
 
     # @auth_required('token')
@@ -196,12 +208,33 @@ class ProfessionalListAPI(Resource):
 
 # Service Requests List API
 class ServiceRequestListAPI(Resource):
-
     @marshal_with(service_requests_fields)
-    # @auth_required('token')
     def get(self):
-        requests = ServiceRequest.query.all()
-        return requests
+        # Get all service requests
+        # if not current_user.is_admin:
+        #     return {"message": "Unauthorized"}, 403
+        
+        service_requests = ServiceRequest.query.order_by(ServiceRequest.date_of_request.desc()).all()
+        
+        enriched_service_requests = []
+        for request in service_requests:
+            customer_name = Customer.query.filter_by(id=request.customer_id).first().full_name
+            professional_name = Professional.query.filter_by(id=request.professional_id).first().full_name
+            service_name = Service.query.filter_by(id=request.service_id).first().name
+            enriched_service_requests.append({
+            'id': request.id,
+            'customer_name': customer_name,
+            'professional_name': professional_name,
+            'service_name': service_name,
+            'date_of_request': request.date_of_request,
+            'date_of_completion': request.date_of_completion,
+            'service_status': request.service_status,
+            'remarks': request.remarks
+            # Add any other fields you need
+            })
+
+
+        return enriched_service_requests
 
     # @role_required(0)
     def post(self):
@@ -219,6 +252,7 @@ class ServiceRequestListAPI(Resource):
         db.session.commit()
         return {"message": "Service request created"}
 
+
 ### Professionals API
 class ProfessionalAPI(Resource):
 
@@ -230,15 +264,74 @@ class ProfessionalAPI(Resource):
             return {"message": "Professional not found"}, 404
         return professional
 
-    # @auth_required('token')
-    def delete(self, professional_id):
-        professional = Professional.query.get(professional_id)
-        if not professional:
-            return {"message": "Professional not found"}, 404
+    def patch(self, professional_id):
+        # Retrieve the professional
+        professional = Professional.query.get_or_404(professional_id)
+        
+        # Parse the incoming data
+        parser = reqparse.RequestParser()
+        parser.add_argument('is_approved', type=int, required=True, 
+                             help='Approval status is required', 
+                             choices=[-1, 0, 1])
+        
+        try:
+            # Parse and validate the arguments
+            args = parser.parse_args()
+            
+            # Update the professional's approval status
+            professional.is_approved = args['is_approved']
+            
+            # Commit the changes
+            db.session.commit()
+            
+            return {"message": "Professional status updated successfully"}, 200
+        
+        except Exception as e:
+            # Rollback in case of any error
+            db.session.rollback()
+            return {"message": str(e)}, 500
 
-        db.session.delete(professional)
-        db.session.commit()
-        return {"message": "Professional deleted"}
+    def delete(self, professional_id):
+        # if not current_user.is_admin:
+        #     return {"message": "Unauthorized"}, 403
+        
+        professional = Professional.query.get_or_404(professional_id)
+        
+        try:
+            db.session.delete(professional)
+            db.session.commit()
+            return {"message": "Professional deleted successfully"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"message": str(e)}, 500
+
+
+# ### Professionals API
+# class ProfessionalAPI(Resource):
+
+#     @marshal_with(professionals_fields)
+#     # @auth_required('token')
+#     def get(self, professional_id):
+#         professional = Professional.query.get(professional_id)
+#         if not professional:
+#             return {"message": "Professional not found"}, 404
+#         return professional
+
+#     def delete(self, professional_id):
+#         # if not current_user.is_admin:
+#         #     return {"message": "Unauthorized"}, 403
+        
+#         professional = Professional.query.get_or_404(professional_id)
+        
+#         try:
+#             db.session.delete(professional)
+#             db.session.commit()
+#             return {"message": "Professional deleted successfully"}, 200
+#         except Exception as e:
+#             db.session.rollback()
+#             return {"message": str(e)}, 500
+
+    
 
 ### Service Requests API
 class ServiceRequestAPI(Resource):

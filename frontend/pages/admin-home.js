@@ -8,26 +8,98 @@ export default {
         <h2>Services 
             <button @click="openAddServiceModal" class="btn btn-success ml-2">Add Service</button>
         </h2>
-        <ul v-if="services.length">
-            <li v-for="service in services" :key="service.id" class="service-item">
-                {{ service.name }} - {{ service.description }}
-                <div class="service-actions">
-                    <button 
-                        @click="openEditServiceModal(service)" 
-                        class="btn btn-primary btn-sm"
+        <table v-if="services.length" class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Time Required (hours)</th>
+            <th>Base Price</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="service in services" :key="service.id">
+            <td>
+              <a href="#" @click.prevent="openServiceDetailsModal(service)">
+                {{ service.id }}
+              </a>
+            </td>
+            <td>{{ service.name }}</td>
+            <td>{{ service.time_required }}</td>
+            <td>{{ service.price }}</td>
+            <td>
+              <button 
+                @click="openEditServiceModal(service)" 
+                class="btn btn-primary btn-sm"
+              >
+                Edit
+              </button>
+              <button 
+                @click="deleteService(service.id)" 
+                class="btn btn-danger btn-sm"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <!-- Service Details Modal -->
+      <div v-if="showServiceDetailsModal" class="modal-overlay">
+        <div class="modal-content">
+          <h3>Service Details</h3>
+          <div v-if="currentService" class="service-details">
+            <p><strong>ID:</strong> {{ currentService.id }}</p>
+            <p><strong>Name:</strong> {{ currentService.name }}</p>
+            <p><strong>Base Price:</strong> {{ currentService.price }}</p>
+            <p><strong>Time Required:</strong> {{ currentService.time_required }} hours</p>
+            <p><strong>Description:</strong> {{ currentService.description }}</p>
+            
+            <h4>Professionals for this Service</h4>
+            <table v-if="professionalsForService.length" class="table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Experience</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="prof in professionalsForService" :key="prof.id">
+                  <td>{{ prof.id }}</td>
+                  <td>{{ prof.full_name }}</td>
+                  <td>{{ prof.experience }} years</td>
+                  <td>
+                    <span 
+                      :class="{
+                        'text-warning': prof.is_approved === 0,
+                        'text-success': prof.is_approved === 1,
+                        'text-danger': prof.is_approved === -1
+                      }"
                     >
-                        Edit
-                    </button>
-                    <button 
-                        @click="deleteService(service.id)" 
-                        class="btn btn-danger btn-sm"
-                    >
-                        Delete
-                    </button>
-                </div>
-            </li>
-        </ul>
-        
+                      {{ getStatusText(prof.is_approved) }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <p v-else>No professionals found for this service.</p>
+          </div>
+          <div class="modal-actions">
+            <button 
+              type="button" 
+              class="btn btn-secondary" 
+              @click="closeServiceDetailsModal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+
         <!-- Service Modal (Add/Edit) -->
         <div v-if="showServiceModal" class="modal-overlay">
             <div class="modal-content">
@@ -85,19 +157,150 @@ export default {
         </div>
         
         <h2>Professionals</h2>
-        <ul v-if="professionals.length">
-            <li v-for="professional in professionals" :key="professional.id">
-                {{ professional.full_name }} ({{ professional.user_id }})
-            </li>
-        </ul>
+        <table v-if="professionals.length" class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Experience (years)</th>
+            <th>Service</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="professional in professionals" :key="professional.id">
+            <td>
+              <a href="#" @click.prevent="openProfessionalDetailsModal(professional)">
+                {{ professional.id }}
+              </a>
+            </td>
+            <td>{{ professional.full_name }}</td>
+            <td>{{ professional.experience }}</td>
+            <td>{{ professional.service_name }}</td>
+            <td>
+              <span 
+                :class="{
+                  'text-warning': professional.is_approved === 0,
+                  'text-success': professional.is_approved === 1,
+                  'text-danger': professional.is_approved === -1
+                }"
+              >
+                {{ getStatusText(professional.is_approved) }}
+              </span>
+            </td>
+            <td>
+              <div class="btn-group">
+                <button 
+                  class="btn btn-sm btn-danger" 
+                  @click="confirmDeleteProfessional(professional.id)"
+                >
+                  Delete
+                </button>
+                
+                <template v-if="professional.is_approved === 0">
+                  <button 
+                    class="btn btn-sm btn-success ml-1" 
+                    @click="updateProfessionalStatus(professional.id, 1)"
+                  >
+                    Approve
+                  </button>
+                  <button 
+                    class="btn btn-sm btn-warning ml-1" 
+                    @click="updateProfessionalStatus(professional.id, -1)"
+                  >
+                    Reject
+                  </button>
+                </template>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Professional Details Modal -->
+      <div v-if="showProfessionalDetailsModal" class="modal-overlay">
+        <div class="modal-content">
+          <h3>Professional Details</h3>
+          <div v-if="currentProfessional" class="professional-details">
+            <p><strong>ID:</strong> {{ currentProfessional.id }}</p>
+            <p><strong>Full Name:</strong> {{ currentProfessional.full_name }}</p>
+            <p><strong>Email:</strong> {{ currentProfessional.email }}</p>
+            <p><strong>Phone:</strong> {{ currentProfessional.phone }}</p>
+            <p><strong>Experience:</strong> {{ currentProfessional.experience }} years</p>
+            <p><strong>Service:</strong> {{ currentProfessional.service_name }}</p>
+            <p><strong>Status:</strong> 
+              <span 
+                :class="{
+                  'text-warning': currentProfessional.is_approved === 0,
+                  'text-success': currentProfessional.is_approved === 1,
+                  'text-danger': currentProfessional.is_approved === -1
+                }"
+              >
+                {{ getStatusText(currentProfessional.is_approved) }}
+              </span>
+            </p>
+            <p><strong>Qualifications:</strong> {{ currentProfessional.qualifications }}</p>
+          </div>
+          <div class="modal-actions">
+            <button 
+              type="button" 
+              class="btn btn-secondary" 
+              @click="closeProfessionalDetailsModal"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+      <h2>Service Requests</h2>
+      <table v-if="visibleServiceRequests.length" class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Customer</th>
+          <th>Service</th>
+          <th>Professional</th>
+          <th>Date of request</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="request in visibleServiceRequests" :key="request.id">
+          <td>{{ request.id }}</td>
+          <td>{{ request.customer_name }}</td>    
+          <td>{{ request.service_name }}</td>
+          <td>{{ request.professional_name }}</td>
+          <td>{{ request.date_of_request }}</td>
+          <td>{{ request.service_status }}</td>
+          <td>
+            <button class="btn btn-primary btn-sm">Accept</button>
+            <button class="btn btn-danger btn-sm">Reject</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- Button to view all service requests -->
+    <div  class="text-center mt-3">
+    <router-link to="/all-service-requests" class="btn btn-secondary">
+        View All Requests
+    </router-link>
+    </div>
+
     </div>
     `,
     
     data() {
         return {
             services: [],
+            serviceRequests: [],
             professionals: [],
             showServiceModal: false,
+            showProfessionalDetailsModal: false,
+            showServiceDetailsModal: false,
+            professionalsForService: [],
+            currentProfessional: null,
             isEditMode: false,
             currentService: {
                 id: null,
@@ -109,7 +312,111 @@ export default {
         };
     },
     
+    computed: {
+        visibleServiceRequests() {
+          // Show only the top 2 entries
+          return this.serviceRequests.slice(0, 2);
+        },
+      },
+
     methods: {
+        getStatusText(isApproved) {
+            switch(isApproved) {
+                case 0: return 'Pending';
+                case 1: return 'Approved';
+                case -1: return 'Rejected';
+                default: return 'Unknown';
+            }
+        },
+
+        async updateProfessionalStatus(id, status) {
+            try {
+                const response = await fetch(`/api/professionals/${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authentication-Token': this.$store.state.auth_token,
+                    },
+                    body: JSON.stringify({ is_approved: status })
+                });
+
+                if (response.ok) {
+                    // Update the local professionals list
+                    const professional = this.professionals.find(p => p.id === id);
+                    if (professional) {
+                        professional.is_approved = status;
+                    }
+                    alert('Professional status updated successfully!');
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.message || 'Failed to update professional status'}`);
+                }
+            } catch (error) {
+                console.error("Error updating professional status:", error);
+                alert('An error occurred while updating professional status');
+            }
+        },
+
+
+        openProfessionalDetailsModal(professional) {
+            this.currentProfessional = professional;
+            this.showProfessionalDetailsModal = true;
+        },
+
+        closeProfessionalDetailsModal() {
+            this.showProfessionalDetailsModal = false;
+            this.currentProfessional = null;
+        },
+
+
+
+        openServiceDetailsModal(service) {
+            this.currentService = service;
+            
+            // Filter professionals for this specific service
+            this.professionalsForService = this.professionals.filter(
+                prof => prof.service_name === service.name
+            );
+            
+            this.showServiceDetailsModal = true;
+        },
+        
+        closeServiceDetailsModal() {
+            this.showServiceDetailsModal = false;
+            this.currentService = null;
+            this.professionalsForService = [];
+        },
+
+
+        confirmDeleteProfessional(id) {
+            if (confirm('Are you sure you want to delete this professional?')) {
+                this.deleteProfessional(id);
+            }
+        },
+
+        async deleteProfessional(id) {
+            try {
+                const response = await fetch(`/api/professionals/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authentication-Token': this.$store.state.auth_token,
+                    }
+                });
+
+                if (response.ok) {
+                    // Remove professional from the list
+                    this.professionals = this.professionals.filter(p => p.id !== id);
+                    alert('Professional deleted successfully!');
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.message || 'Failed to delete professional'}`);
+                }
+            } catch (error) {
+                console.error("Error deleting professional:", error);
+                alert('An error occurred while deleting the professional');
+            }
+        },
+
         async fetchData(endpoint) {
             try {
                 const res = await fetch(endpoint, {
@@ -127,6 +434,7 @@ export default {
         async loadAdminData() {
             this.services = await this.fetchData('/api/services');
             this.professionals = await this.fetchData('/api/professionals');
+            this.serviceRequests = await this.fetchData('/api/service_requests');
         },
         
         openAddServiceModal() {
@@ -236,6 +544,7 @@ export default {
     
     mounted() {
         this.loadAdminData();
+        console.log("this is services", this.services);
     },
     style: `
         <style scoped>
@@ -266,6 +575,18 @@ export default {
         background-color: #dc3545;
         color: white;
     }
+
+    .text-warning { color: orange; }
+    .text-success { color: green; }
+    .text-danger { color: red; }
+
+    .btn-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+
+
     </style>
     `
 };

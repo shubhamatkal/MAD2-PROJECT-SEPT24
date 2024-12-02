@@ -32,6 +32,7 @@ class Customer(UserMixin,db.Model):
     def __repr__(self):
         return f"<Customer {self.email}>"
 
+#add is approved in this 
 # Professional Model
 class Professional(UserMixin,db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -44,6 +45,7 @@ class Professional(UserMixin,db.Model):
     address = db.Column(db.String(255), nullable=False)
     pin_code = db.Column(db.String(20), nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'), nullable=False, server_default='2')
+    is_approved = db.Column(db.Boolean, default=False)
     # Adding fs_uniquifier field
     fs_uniquifier = db.Column(db.String(255), unique=True, nullable=False)
     def __repr__(self):
