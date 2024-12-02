@@ -45,6 +45,7 @@ class Professional(UserMixin,db.Model):
     address = db.Column(db.String(255), nullable=False)
     pin_code = db.Column(db.String(20), nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'), nullable=False, server_default='2')
+    phone = db.Column(db.Integer, nullable=True)
     is_approved = db.Column(db.Boolean, default=False)
     # Adding fs_uniquifier field
     fs_uniquifier = db.Column(db.String(255), unique=True, nullable=False)
@@ -81,6 +82,9 @@ class ServiceRequest(db.Model):
     date_of_completion = db.Column(db.DateTime, nullable=True)
     service_status = db.Column(db.String(20), nullable=False, default='requested')  # requested, assigned, closed
     remarks = db.Column(db.Text, nullable=True)
+    rating = db.Column(db.Float, nullable=True)
+    rating_remarks = db.Column(db.String(500), nullable=True)
+    rated_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
     # Relationships
     service = db.relationship('Service', backref='service_requests', lazy=True)

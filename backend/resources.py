@@ -5,7 +5,8 @@ from flask import current_app as app
 from backend.models import Service, Professional, ServiceRequest, db, Customer
 from backend.auth_utils import role_required
 from flask_restful import reqparse
-
+import datetime
+from datetime import timezone, datetime
 
 cache = app.cache
 
@@ -510,6 +511,278 @@ class ProfessionalServiceRequestsResourcePut(Resource):
             }, 500
 
 
+#customer api 
+class CustomerServiceRequestsResource(Resource):
+    def post(self):
+        print("inside post")
+        """
+        Retrieve all service requests for a specific customer 
+        with detailed service and professional information.
+        
+        :return: JSON response with service request details
+        """
+        try:
+            # Get customer ID from request body
+            data = request.get_json()
+            customer_id = data.get('customer_id')
+            
+            if not customer_id:
+                return {
+                    'message': 'Customer ID is required',
+                    'error': 'Bad Request'
+                }, 400
+
+            # Query service requests with joined professional and service information
+            service_requests = (
+                db.session.query(
+                    ServiceRequest, 
+                    Professional.full_name.label('professional_name'),
+                    Professional.phone.label('professional_phone'),
+                    Service.name.label('service_name')
+                )
+                .join(Professional, ServiceRequest.professional_id == Professional.id, isouter=True)
+                .join(Service, ServiceRequest.service_id == Service.id)
+                .filter(ServiceRequest.customer_id == customer_id)
+                .order_by(ServiceRequest.date_of_request.desc())  # Most recent first
+                .all()
+            )
+            print("done till here")
+            # Prepare the response data
+            results = []
+            for (service_request, professional_name, professional_phone, service_name) in service_requests:
+                results.append({
+                    # ServiceRequest model fields
+                    'id': service_request.id,
+                    'service_id': service_request.service_id,
+                    'professional_id': service_request.professional_id,
+                    'date_of_request': service_request.date_of_request.isoformat() if service_request.date_of_request else None,
+                    'date_of_completion': service_request.date_of_completion.isoformat() if service_request.date_of_completion else None,
+                    'status': service_request.service_status,
+                    'remarks': service_request.remarks,
+                    
+                    # Additional professional and service details
+                    'professional_name': professional_name,
+                    'phone': professional_phone,
+                    'service_name': service_name
+                })
+            print(results)
+            print("above is results of customer service requests")
+            return jsonify(results)
+
+        except Exception as e:
+            print("error")
+            print(e)
+            # Error handling
+            db.session.rollback()
+            return {
+
+                'message': 'An error occurred while fetching service requests',
+                'error': str(e)
+            }, 500
+
+
+
+class ServiceRequestCloseResource(Resource):
+    def post(self, request_id):
+        """
+        Close a specific service request
+        :param request_id: ID of the service request to close
+        :return: JSON response indicating closure status
+        """
+        try:
+            # Authenticate and authorize the request
+            # Retrieve the current user (assumed from authentication)
+            # current_user_id = get_current_user_id()  # Implement this function to get authenticated user
+            
+            # # Find the specific service request
+            service_request = ServiceRequest.query.get(request_id)
+            
+            # Validate request
+            if not service_request:
+                return {
+                    'message': 'Service request not found',
+                    'error': 'Not Found'
+                }, 404
+            
+            # # Check if the request belongs to the current customer
+            # if service_request.customer_id != current_user_id:
+            #     return {
+            #         'message': 'Unauthorized to close this service request',
+            #         'error': 'Forbidden'
+            #     }, 403
+            print("done till this ")
+            # Validate request status
+            allowed_statuses = ['assigned', 'pending']
+            if service_request.service_status.lower() not in allowed_statuses:
+                return {
+                    'message': f'Cannot close request with current status: {service_request.service_status}',
+                    'error': 'Bad Request'
+                }, 400
+            
+            # Update request status
+            service_request.service_status = 'closed'
+            print("done till this also")
+            service_request.date_of_completion = datetime.now(timezone.utc)
+            service_request.remarks = f"Request closed by customer on {datetime.now(timezone.utc)}"
+            
+            # Save changes to database
+            db.session.commit()
+            
+            # # Log the closure action
+            # activity_log = ActivityLog(
+            #     user_id=current_user_id,
+            #     action='close_service_request',
+            #     details=f"Closed service request {request_id}"
+            # )
+            # db.session.add(activity_log)
+            # db.session.commit()
+            
+            return {
+                'message': 'Service request closed successfully',
+                'request_id': request_id,
+                'new_status': 'closed'
+            }, 200
+        
+        # except SQLAlchemyError as db_error:
+        #     # Rollback database session in case of database-related errors
+        #     db.session.rollback()
+        #     current_app.logger.error(f"Database error closing service request: {db_error}")
+        #     return {
+        #         'message': 'Database error occurred while closing service request',
+        #         'error': str(db_error)
+        #     }, 500
+        
+        except Exception as e:
+            print(e)
+            # Catch any other unexpected errors
+            current_app.logger.error(f"Unexpected error closing service request: {e}")
+            return {
+                'message': 'An unexpected error occurred',
+                'error': str(e)
+            }, 500
+        
+        finally:
+            # Ensure database session is closed
+            db.session.close()
+
+
+
+
+#for rating page 
+class ServiceRequestDetailsResource(Resource):
+    def get(self, request_id):
+        """
+        Retrieve detailed information for a specific service request for rating
+        
+        :param request_id: ID of the service request
+        :return: JSON response with service request details
+        """
+        try:
+            # Query service request with joined professional and service information
+            service_request_details = (
+                db.session.query(
+                    ServiceRequest, 
+                    Professional.full_name.label('professional_name'),
+                    Service.name.label('service_name')
+                )
+                .join(Professional, ServiceRequest.professional_id == Professional.id)
+                .join(Service, ServiceRequest.service_id == Service.id)
+                .filter(ServiceRequest.id == request_id)
+                .first()
+            )
+            
+            # Check if service request exists
+            if not service_request_details:
+                return {
+                    'message': 'Service request not found',
+                    'error': 'Not Found'
+                }, 404
+            
+            # Unpack the query result
+            service_request, professional_name, service_name = service_request_details
+            
+            # Prepare response
+            return {
+                'id': service_request.id,
+                'service_name': service_name,
+                'professional_name': professional_name,
+                'date_of_completion': service_request.date_of_completion.isoformat() if service_request.date_of_completion else None,
+                'service_status': service_request.service_status
+            }, 200
+        
+        except Exception as e:
+            app.logger.error(f"Error fetching service request details: {e}")
+            return {
+                'message': 'An error occurred while fetching service request details',
+                'error': str(e)
+            }, 500
+
+
+class RateServiceRequestResource(Resource):
+    def post(self):
+        try:
+            # Parse request data
+            data = request.get_json()
+            
+            # Validate required fields
+            required_fields = ['request_id', 'rating']
+            for field in required_fields:
+                if field not in data:
+                    return {
+                        'message': f'Missing required field: {field}',
+                        'error': 'Bad Request'
+                    }, 400
+            
+            # Retrieve the service request
+            service_request = ServiceRequest.query.get(data['request_id'])
+            
+            # Validate service request
+            if not service_request:
+                return {
+                    'message': 'Service request not found',
+                    'error': 'Not Found'
+                }, 404
+            
+            # Validate rating is between 1 and 5
+            rating_value = data['rating']
+            if not 1 <= rating_value <= 5:
+                return {
+                    'message': 'Rating must be between 1 and 5',
+                    'error': 'Bad Request'
+                }, 400
+            
+            # Update service request with rating details
+            service_request.rating = rating_value
+            service_request.rating_remarks = data.get('remarks', '')
+            service_request.rated_at = datetime.now(timezone.utc)
+            service_request.date_of_completion = datetime.now(timezone.utc)
+            service_request.service_status = 'rated'
+            
+            # Commit to database
+            db.session.commit()
+            
+            return {
+                'message': 'Service request rated successfully'
+            }, 200
+        
+        except Exception as e:
+            # Rollback in case of error
+            db.session.rollback()
+            app.logger.error(f"Error rating service request: {e}")
+            return {
+                'message': 'An error occurred while rating the service request',
+                'error': str(e)
+            }, 500
+
+
+# Add the new resources to the API
+api.add_resource(ServiceRequestDetailsResource, '/service_request_details/<int:request_id>')
+api.add_resource(RateServiceRequestResource, '/rate_service_request')
+
+#======
+
+
+
 # Add the new resources to the API
 api.add_resource(ProfessionalAPI, '/professionals/<int:professional_id>')
 api.add_resource(ProfessionalListAPI, '/professionals')
@@ -521,3 +794,7 @@ api.add_resource(ServiceListAPI, '/services')
 #professional home page 
 api.add_resource(ProfessionalServiceRequestsResource, '/service-requests/professional/<int:professional_id>')
 api.add_resource(ProfessionalServiceRequestsResourcePut, '/service-requests/<int:request_id>')
+#customer home page
+api.add_resource(CustomerServiceRequestsResource, '/customer_service_requests')
+#close service request
+api.add_resource(ServiceRequestCloseResource, '/service_requests/<int:request_id>/close')

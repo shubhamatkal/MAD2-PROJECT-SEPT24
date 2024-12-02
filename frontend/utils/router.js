@@ -8,6 +8,8 @@ import Profile from "../pages/profile.js";
 import HomeProfessional from "../pages/pro-home.js";
 import AllServiceRequests from "../pages/all_ser_req.js";
 import ProAllServiceRequests from "../pages/pro_all_ser_req.js";
+import CusAllServiceRequests from "../pages/cus_full_history.js";
+import rate from "../pages/rate.js";
 
 
 const routes = [
@@ -20,7 +22,9 @@ const routes = [
     {path : '/profile', component : Profile},
     {path : '/professional-home', component : HomeProfessional},
     {path : '/all-service-requests', component : AllServiceRequests},
-    {path : '/pro_full_history', component : ProAllServiceRequests}
+    {path : '/pro_full_history', component : ProAllServiceRequests},
+    {path : '/cus_full_history', component : CusAllServiceRequests},
+    {path : '/rate/:requestId', component : rate}
 ]
 
 const router = new VueRouter({
