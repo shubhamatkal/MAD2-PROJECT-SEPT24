@@ -783,6 +783,58 @@ api.add_resource(RateServiceRequestResource, '/rate_service_request')
 
 
 
+#professional booking
+class ProfessionalsByServiceResource(Resource):
+    def get(self, service_id):
+        # Query professionals by service ID
+        ser_name = Service.query.filter_by(id=service_id).first().name
+        professionals = Professional.query.filter_by(service_name=ser_name).all()
+        
+        # Transform professionals to a list of dictionaries
+        professionals_list = [{
+            'id': prof.id,
+            'name': prof.full_name,
+            'base_price': 'NA',  # As mentioned, base price not defined
+            'avg_rating': 'NA'   # Average rating not present
+        } for prof in professionals]
+        
+        return professionals_list, 200
+
+class BookProfessionalResource(Resource):
+    def post(self):
+        # Get booking data from request
+        data = request.json
+        
+        # Validate required fields
+        required_fields = ['professional_id', 'user_id', 'service_id']
+        if not all(field in data for field in required_fields):
+            return {'error': 'Missing required booking information'}, 400
+        try:
+            new_service_request = ServiceRequest(
+                service_id=data['service_id'],
+                customer_id=data['user_id'],
+                professional_id=data['professional_id'],
+                date_of_request=datetime.now(),
+                service_status='pending'
+            )   
+        
+            db.session.add(new_service_request)
+            db.session.commit()
+            return {'message': 'Booking successful'}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {'message': str(e)}, 500
+
+        # # Create booking logic would go here
+        # # For now, just return a success message
+        # return {'message': 'Booking successful'}, 201
+
+# Add these resources to your API
+api.add_resource(ProfessionalsByServiceResource, '/professionals/service/<int:service_id>')
+api.add_resource(BookProfessionalResource, '/book')
+
+
+
 # Add the new resources to the API
 api.add_resource(ProfessionalAPI, '/professionals/<int:professional_id>')
 api.add_resource(ProfessionalListAPI, '/professionals')
