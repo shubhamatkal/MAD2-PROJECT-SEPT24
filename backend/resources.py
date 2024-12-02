@@ -354,6 +354,162 @@ class ServiceRequestAPI(Resource):
         db.session.commit()
         return {"message": "Service request deleted"}
 
+
+class ProfessionalServiceRequestsResource(Resource):
+    def get(self, professional_id):
+        """
+        Retrieve all service requests for a specific professional 
+        with detailed customer and service information.
+        
+        :param professional_id: ID of the professional
+        :return: JSON response with service request details
+        """
+        print("inside professional service requests resource")
+        try:
+            # Query service requests with joined customer and service information
+            service_requests = (
+                db.session.query(
+                    ServiceRequest, 
+                    Customer.full_name.label('customer_name'), 
+                    Customer.address.label('customer_address'),
+                    Customer.pin_code.label('customer_pincode'), 
+                    Service.name.label('service_name')
+                )
+                .join(Customer, ServiceRequest.customer_id == Customer.id)
+                .join(Service, ServiceRequest.service_id == Service.id)
+                .filter(ServiceRequest.professional_id == professional_id)
+                .all()
+            )
+            print("completed till this ")
+            # Prepare the response data
+            results = []
+            for (service_request, customer_name, customer_address, customer_pincode, service_name) in service_requests:
+                results.append({
+                    # ServiceRequest model fields
+                    'id': service_request.id,
+                    'service_id': service_request.service_id,
+                    'customer_id': service_request.customer_id,
+                    'professional_id': service_request.professional_id,
+                    'date_of_request': service_request.date_of_request.isoformat() if service_request.date_of_request else None,
+                    'date_of_completion': service_request.date_of_completion.isoformat() if service_request.date_of_completion else None,
+                    'service_status': service_request.service_status,
+                    'remarks': service_request.remarks,
+                    
+                    # Additional customer and service details
+                    'customer_name': customer_name,
+                    'customer_address': customer_address,
+                    'customer_pincode': customer_pincode,
+                    'service_name': service_name
+                })
+            print(results)
+            return jsonify(results)
+
+        except Exception as e:
+            print("error")
+            # Error handling
+            db.session.rollback()
+            return {
+                'message': 'An error occurred while fetching service requests',
+                'error': str(e)
+            }, 500
+    def put(self, request_id):
+        print("inside put")
+        """
+        Update the status of a service request
+        
+        :param request_id: ID of the service request to update
+        :return: Updated service request details or error message
+        """
+        try:
+            # Get the service request from the database
+            service_request = ServiceRequest.query.get_or_404(request_id)
+            
+            # Get data from the request
+            data = request.get_json()
+            
+            # Validate and update status
+            new_status = data.get('service_status')
+            if not new_status:
+                return {'message': 'Status is required'}, 400
+            
+            # Update status
+            service_request.service_status = new_status
+            
+            # If closed or completed, set completion date
+            if new_status.lower() in ['closed', 'completed', 'rejected']:
+                service_request.date_of_completion = datetime.utcnow()
+            
+            # Commit changes
+            db.session.commit()
+            
+            # Prepare response
+            return {
+                'message': 'Service request updated successfully',
+                'service_request': {
+                    'id': service_request.id,
+                    'service_status': service_request.service_status,
+                    'date_of_completion': service_request.date_of_completion.isoformat() if service_request.date_of_completion else None
+                }
+            }, 200
+        
+        except Exception as e:
+            # Rollback in case of error
+            db.session.rollback()
+            return {
+                'message': 'An error occurred while updating the service request',
+                'error': str(e)
+            }, 500
+
+class ProfessionalServiceRequestsResourcePut(Resource):
+    def put(self, request_id):
+        print("inside put")
+        """
+        Update the status of a service request
+        
+        :param request_id: ID of the service request to update
+        :return: Updated service request details or error message
+        """
+        try:
+            # Get the service request from the database
+            service_request = ServiceRequest.query.get_or_404(request_id)
+            
+            # Get data from the request
+            data = request.get_json()
+            
+            # Validate and update status
+            new_status = data.get('service_status')
+            if not new_status:
+                return {'message': 'Status is required'}, 400
+            
+            # Update status
+            service_request.service_status = new_status
+            
+            # If closed or completed, set completion date
+            if new_status.lower() in ['closed', 'completed', 'rejected']:
+                service_request.date_of_completion = datetime.utcnow()
+            
+            # Commit changes
+            db.session.commit()
+            
+            # Prepare response
+            return {
+                'message': 'Service request updated successfully',
+                'service_request': {
+                    'id': service_request.id,
+                    'service_status': service_request.service_status,
+                    'date_of_completion': service_request.date_of_completion.isoformat() if service_request.date_of_completion else None
+                }
+            }, 200
+        
+        except Exception as e:
+            # Rollback in case of error
+            db.session.rollback()
+            return {
+                'message': 'An error occurred while updating the service request',
+                'error': str(e)
+            }, 500
+
+
 # Add the new resources to the API
 api.add_resource(ProfessionalAPI, '/professionals/<int:professional_id>')
 api.add_resource(ProfessionalListAPI, '/professionals')
@@ -362,3 +518,6 @@ api.add_resource(ServiceRequestListAPI, '/service_requests')
 # Add the resources to the API
 api.add_resource(ServiceAPI, '/services/<int:service_id>')
 api.add_resource(ServiceListAPI, '/services')
+#professional home page 
+api.add_resource(ProfessionalServiceRequestsResource, '/service-requests/professional/<int:professional_id>')
+api.add_resource(ProfessionalServiceRequestsResourcePut, '/service-requests/<int:request_id>')

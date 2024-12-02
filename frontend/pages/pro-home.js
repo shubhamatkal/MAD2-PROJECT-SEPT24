@@ -2,118 +2,167 @@ export default {
 	template: `
 	  <div class="container mt-5">
 		<h1 class="mb-4">Welcome to A2Z Household Services, {{ firstName }}</h1>
+		
+		<div class="card mb-4">
+		  <div class="card-header">
+			<h2 class="mb-0">New Service Requests</h2>
+		  </div>
+		  <div class="card-body">
+			<table class="table table-striped" v-if="newServiceRequests.length > 0">
+			  <thead>
+				<tr>
+				  <th>ID</th>
+				  <th>Customer Name</th>
+				  <th>Contact</th>
+				  <th>Address</th>
+				  <th>Pin Code</th>
+				  <th>Service</th>
+				  <th>Actions</th>
+				</tr>
+			  </thead>
+			  <tbody>
+				<tr v-for="request in newServiceRequests" :key="request.id">
+				  <td>{{ request.id }}</td>
+				  <td>{{ request.customer_name }}</td>
+				  <td>{{ request.customer_phone || 'N/A' }}</td>
+				  <td>{{ request.customer_address }}</td>
+				  <td>{{ request.customer_pincode }}</td>
+				  <td>{{ request.service_name }}</td>
+				  <td>
+					<div class="btn-group btn-group-sm" role="group">
+					  <button 
+						class="btn btn-success" 
+						@click="updateServiceRequestStatus(request.id, 'Assigned')"
+					  >
+						Accept
+					  </button>
+					  <button 
+						class="btn btn-danger" 
+						@click="updateServiceRequestStatus(request.id, 'Rejected')"
+					  >
+						Reject
+					  </button>
+					</div>
+				  </td>
+				</tr>
+			  </tbody>
+			</table>
+			<p v-else class="text-center text-muted">No new service requests</p>
+		  </div>
+		</div>
   
-		<h2>Service Requests</h2>
-		<table class="table table-striped">
-		  <thead>
-			<tr>
-			  <th>Sr. No</th>
-			  <th>Customer Name</th>
-			  <th>Contact</th>
-			  <th>Location</th>
-			  <th>Pin Code</th>
-			  <th>Actions</th>
-			</tr>
-		  </thead>
-		  <tbody>
-			<tr v-for="(request, index) in openRequests" :key="request.id">
-			  <td>{{ index + 1 }}</td>
-			  <td>{{ request.customer_name }}</td>
-			  <td>{{ request.contact }}</td>
-			  <td>{{ request.location }}</td>
-			  <td>{{ request.pin_code }}</td>
-			  <td>
-				<button class="btn btn-success btn-sm" @click="acceptRequest(request.id)">Accept</button>
-				<button class="btn btn-primary btn-sm" @click="viewRequest(request.id)">View</button>
-				<button class="btn btn-danger btn-sm" @click="rejectRequest(request.id)">Reject</button>
-			  </td>
-			</tr>
-			<tr v-if="openRequests.length === 0">
-			  <td colspan="6" class="text-center">No open service requests</td>
-			</tr>
-		  </tbody>
-		</table>
-  
-		<h2>Service History</h2>
-		<table class="table table-striped">
-		  <thead>
-			<tr>
-			  <th>Sr. No</th>
-			  <th>Customer Name</th>
-			  <th>Contact</th>
-			  <th>Location</th>
-			  <th>Pin Code</th>
-			  <th>Closed Date</th>
-			  <th>Rating</th>
-			</tr>
-		  </thead>
-		  <tbody>
-			<tr v-for="(history, index) in closedRequests" :key="history.id">
-			  <td>{{ index + 1 }}</td>
-			  <td>{{ history.customer_name }}</td>
-			  <td>{{ history.contact }}</td>
-			  <td>{{ history.location }}</td>
-			  <td>{{ history.pin_code }}</td>
-			  <td>{{ history.closed_date }}</td>
-			  <td>{{ history.rating }}</td>
-			</tr>
-			<tr v-if="closedRequests.length === 0">
-			  <td colspan="7" class="text-center">No service history</td>
-			</tr>
-		  </tbody>
-		</table>
+		<div class="card">
+		  <div class="card-header d-flex justify-content-between align-items-center">
+			<h2 class="mb-0">Service Request History</h2>
+			<router-link to="/pro_full_history" class="btn btn-primary btn-sm">
+			  View All History
+			</router-link>
+		  </div>
+		  <div class="card-body">
+			<table class="table table-striped" v-if="serviceHistory.length > 0">
+			  <thead>
+				<tr>
+				  <th>ID</th>
+				  <th>Customer Name</th>
+				  <th>Contact</th>
+				  <th>Location</th>
+				  <th>Pin Code</th>
+				  <th>Completion Date</th>
+				  <th>Status</th>
+				  <th>Rating</th>
+				</tr>
+			  </thead>
+			  <tbody>
+				<tr v-for="history in serviceHistory" :key="history.id">
+				  <td>{{ history.id }}</td>
+				  <td>{{ history.customer_name }}</td>
+				  <td>{{ history.customer_phone || 'N/A' }}</td>
+				  <td>{{ history.customer_address }}</td>
+				  <td>{{ history.customer_pincode }}</td>
+				  <td>{{ formatDate(history.date_of_completion) }}</td>
+				  <td>{{ history.service_status }}</td>
+				  <td>{{ history.rating || 'N/A' }}</td>
+				</tr>
+			  </tbody>
+			</table>
+			<p v-else class="text-center text-muted">No service history</p>
+		  </div>
+		</div>
 	  </div>
 	`,
-  
 	data() {
 	  return {
-		openRequests: [],
-		closedRequests: [],
+		newServiceRequests: [],
+		serviceHistory: [],
 		firstName: ''
 	  };
 	},
-  
 	created() {
 	  this.firstName = this.getFirstName();
 	  this.fetchServiceRequests();
+	  console.log(this.firstName);
 	},
-  
 	methods: {
 	  getFirstName() {
 		const fullName = this.$store.state.name;
 		return fullName ? fullName.split(' ')[0] : '';
 	  },
-  
 	  async fetchServiceRequests() {
 		try {
-		  const res = await fetch(location.origin + '/api/service_requests');
-		  const data = await res.json();
+		  // Fetch service requests for the current professional
+		  const professionalId = this.$store.state.user_id;
+		  const response = await fetch(`/api/service-requests/professional/${professionalId}`);
 		  
-		  if (res.ok) {
-			this.openRequests = data.filter(request => request.status === 'open' && request.professional_id === this.$store.state.user_id);
-			this.closedRequests = data.filter(request => request.status === 'closed' && request.professional_id === this.$store.state.user_id);
-		  } else {
-			console.error(data.message || 'Failed to fetch service requests');
+		  if (!response.ok) {
+			throw new Error('Failed to fetch service requests');
 		  }
+		  
+		  const allRequests = await response.json();
+		  console.log(allRequests, 'allRequests');
+		  
+		  // Filter new service requests (with status 'requested')
+		  this.newServiceRequests = allRequests.filter(
+			request => request.service_status === 'Requested'
+		  );
+		  
+		  // Filter and limit service history to last 5 entries
+		  this.serviceHistory = allRequests
+			.filter(request => 
+			  ['assigned', 'requested', 'rejected'].includes(request.service_status.toLowerCase())
+			)
+			.sort((a, b) => new Date(b.date_of_completion) - new Date(a.date_of_completion))
+			.slice(0, 5);
+
+			console.log(this.serviceHistory, 'serviceHistory');
 		} catch (error) {
 		  console.error('Error fetching service requests:', error);
+		  // Optionally show error message to user
 		}
 	  },
-  
-	  acceptRequest(requestId) {
-		alert(`Accepting request with ID: ${requestId}`);
-		// Logic to handle acceptance (fetch PUT/POST call)
+	  async updateServiceRequestStatus(requestId, newStatus) {
+		try {
+		  const response = await fetch(`/api/service-requests/${requestId}`, {
+			method: 'PUT',
+			headers: {
+			  'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ service_status: newStatus })
+		  });
+		  
+		  if (!response.ok) {
+			throw new Error('Failed to update service request status');
+		  }
+		  
+		  // Refresh the service requests after successful update
+		  this.fetchServiceRequests();
+		} catch (error) {
+		  console.error('Error updating service request status:', error);
+		  // Optionally show error message to user
+		}
 	  },
-  
-	  viewRequest(requestId) {
-		alert(`Viewing request with ID: ${requestId}`);
-		// Logic to handle viewing details
-	  },
-  
-	  rejectRequest(requestId) {
-		alert(`Rejecting request with ID: ${requestId}`);
-		// Logic to handle rejection (fetch PUT/POST call)
+	  formatDate(dateString) {
+		if (!dateString) return 'N/A';
+		return new Date(dateString).toLocaleDateString();
 	  }
 	}
   };
-  

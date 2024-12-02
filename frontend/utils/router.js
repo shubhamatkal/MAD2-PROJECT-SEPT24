@@ -7,6 +7,7 @@ import ProfessionalRegister from "../pages/pro-reg.js";
 import Profile from "../pages/profile.js";
 import HomeProfessional from "../pages/pro-home.js";
 import AllServiceRequests from "../pages/all_ser_req.js";
+import ProAllServiceRequests from "../pages/pro_all_ser_req.js";
 
 
 const routes = [
@@ -18,7 +19,8 @@ const routes = [
     {path : '/professional-register', component : ProfessionalRegister},
     {path : '/profile', component : Profile},
     {path : '/professional-home', component : HomeProfessional},
-    {path : '/all-service-requests', component : AllServiceRequests}
+    {path : '/all-service-requests', component : AllServiceRequests},
+    {path : '/pro_full_history', component : ProAllServiceRequests}
 ]
 
 const router = new VueRouter({
