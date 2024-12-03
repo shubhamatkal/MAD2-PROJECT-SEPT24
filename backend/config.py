@@ -15,3 +15,6 @@ class LocalDevelopmentConfig(Config):
     WTF_CSRF_ENABLED = False
     SECURITY_UNAUTHORIZED_VIEW = None  # Prevent Flask-Security from redirecting on unauthorized access
     SECURITY_REDIRECT_BEHAVIOR = "spa"  # Single Page Application mode to prevent redirects
+    # SECURITY_TOKEN_AUTHENTICATION_HEADER = 'Authorization'
+    SECURITY_TOKEN_AUTHENTICATION_HEADER = 'Authentication-Token'
+    SECURITY_TOKEN_AUTHENTICATION_KEY = 'auth_token'

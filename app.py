@@ -9,6 +9,32 @@ from backend.routes import register_routes  # Import the route registration func
 from backend.celery.celery_factory import celery_init_app
 import flask_excel as excel
 
+
+from flask_security.datastore import SQLAlchemyUserDatastore
+
+class MultiTableUserDatastore(SQLAlchemyUserDatastore):
+    def __init__(self, db, *user_models):
+        self.db = db
+        self.user_models = user_models
+
+    def find_user(self, **kwargs):
+        for model in self.user_models:
+            user = self.db.session.query(model).filter_by(**kwargs).first()
+            if user:
+                return user
+        return None
+
+# In your app initialization
+datastore = MultiTableUserDatastore(
+    db, 
+    Admin,      # First model
+    Customer,   # Second model
+    Professional  # Third model
+)
+
+
+
+
 def createApp():
     app = Flask(__name__, template_folder='frontend', static_folder='frontend', static_url_path='/static')
     app.config.from_object(LocalDevelopmentConfig)
@@ -24,7 +50,7 @@ def createApp():
 
 
     # Initialize Flask-Security with a custom datastore
-    datastore = MultiTableUserDatastore(db, Admin, Customer, Professional)
+    # datastore = MultiTableUserDatastore(db, Admin, Customer, Professional)
     app.security = Security(app, datastore=datastore, register_blueprint=False)
 
     # Push the application context here
@@ -47,6 +73,9 @@ celery_app = celery_init_app(app)
 
 # Import any necessary initialization code
 import backend.create_initial_data
+import backend.routes
+#also add here celery code
+
 excel.init_excel(app)
 if __name__ == '__main__':
     app.run()

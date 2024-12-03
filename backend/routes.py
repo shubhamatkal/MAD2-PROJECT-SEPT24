@@ -9,6 +9,7 @@ from datetime import datetime
 from backend.celery.tasks import add, create_csv
 from celery.result import AsyncResult
 import uuid
+# from backend.auth_utils import role_required
 
 def generate_uniqifier():
     return str(uuid.uuid4())
@@ -36,8 +37,10 @@ def register_routes(app):
 #     print("home")
 #     return '<h1> home page</h1>'
 #     # return render_template('index.html')
-
+    #@auth_required('token')
     @app.get('/protected')
+    def protected():
+        return jsonify({'message': 'This is a protected route'})
 
     @app.get('/celery')
     def celery():
@@ -63,7 +66,7 @@ def register_routes(app):
         task = create_csv.delay()
         return {'task_id': task.id}, 200
 
-    @auth_required('token')
+    ##@auth_required('token')
     def protected():
         return '<h1> only accessible by auth user</h1>'
 

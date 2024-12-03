@@ -12,25 +12,48 @@ import CusAllServiceRequests from "../pages/cus_full_history.js";
 import rate from "../pages/rate.js";
 import Services from "../pages/services.js";
 
+import store from './store.js'
+
 
 const routes = [
     {path : '/', component : Home},
     {path : '/login', component : LoginPage},
     {path : '/register-customer', component : RegisterCustomer},
-    {path : '/admin-home', component : AdminHome},
-    {path : '/home-customer', component : HomeCustomer},
+    {path : '/admin-home', component : AdminHome,meta : {requiresLogin : true}},
+    {path : '/home-customer', component : HomeCustomer ,meta : {requiresLogin : true}},
     {path : '/professional-register', component : ProfessionalRegister},
-    {path : '/profile', component : Profile},
-    {path : '/professional-home', component : HomeProfessional},
-    {path : '/all-service-requests', component : AllServiceRequests},
-    {path : '/pro_full_history', component : ProAllServiceRequests},
-    {path : '/cus_full_history', component : CusAllServiceRequests},
-    {path : '/rate/:requestId', component : rate},
-    {path : '/services/:serviceId', component : Services}
+    {path : '/profile', component : Profile,meta : {requiresLogin : true}},
+    {path : '/professional-home', component : HomeProfessional,meta : {requiresLogin : true}},
+    {path : '/all-service-requests', component : AllServiceRequests,meta : {requiresLogin : true}},
+    {path : '/pro_full_history', component : ProAllServiceRequests,meta : {requiresLogin : true}},
+    {path : '/cus_full_history', component : CusAllServiceRequests,meta : {requiresLogin : true}},
+    {path : '/rate/:requestId', component : rate,meta : {requiresLogin : true}},
+    {path : '/services/:serviceId', component : Services,meta : {requiresLogin : true}}
 ]
 
 const router = new VueRouter({
     routes
+})
+
+
+//  navigation guards
+router.beforeEach((to, from, next) => {
+    console.log('Navigation Guard Triggered');
+    console.log('To Route:', to.path);
+    console.log('Logged In:', store.state.loggedIn);
+    console.log('Requires Login:', to.meta.role);
+    if (to.matched.some((record) => record.meta.requiresLogin)){
+        if (!store.state.loggedIn){
+            console.log('Not logged in, redirecting to login');
+            next({path : '/login'})
+        } else {
+            console.log('Proceeding to route');
+            next();
+        }
+    } else {
+        console.log('No login required');
+        next();
+    }
 })
 
 export default router;

@@ -1,9 +1,9 @@
 from flask import jsonify, request
 from flask_restful import Api, Resource, fields, marshal_with
-# from flask_security import auth_required, current_user
+from flask_security import auth_required, current_user
 from flask import current_app as app
 from backend.models import Service, Professional, ServiceRequest, db, Customer
-from backend.auth_utils import role_required
+# from backend.auth_utils import role_required
 from flask_restful import reqparse
 import datetime
 from datetime import timezone, datetime
@@ -80,6 +80,7 @@ class ServiceAPI(Resource):
 
     # @login_required
     # @marshal_with(services_fields)
+    #@auth_required('token')
     def delete(self, service_id):
         # Delete service
         # if not current_user.is_admin:
@@ -98,14 +99,14 @@ class ServiceAPI(Resource):
 
 
 
-    # # @auth_required('token')
+    # # #@auth_required('token')
     # def get(self, service_id):
     #     service = Service.query.get(service_id)
     #     if not service:
     #         return {"message": "Service not found"}, 404
     #     return service
 
-    # # @auth_required('token')
+    # # #@auth_required('token')
     # def delete(self, service_id):
     #     service = Service.query.get(service_id)
     #     if not service:
@@ -120,7 +121,6 @@ class ServiceAPI(Resource):
 class ServiceListAPI(Resource):
     print("inside service list api")
     @marshal_with(services_fields)
-    # @auth_required('token')
     # @cache.cached(timeout = 5, key_prefix = "services")
     def get(self):
         print("inside get of services")
@@ -136,7 +136,7 @@ class ServiceListAPI(Resource):
             print(service.description)
         return services
 
-    # @auth_required('token')
+    #@auth_required('token')
     def post(self):
         print("inside post of services")
         data = request.json
@@ -185,13 +185,13 @@ class ServiceListAPI(Resource):
 class ProfessionalListAPI(Resource):
 
     @marshal_with(professionals_fields)
-    # @auth_required('token')
+    # #@auth_required('token')
     def get(self):
         professionals = Professional.query.all()
         print(professionals, "this is professionals")
         return professionals
 
-    # @auth_required('token')
+    ##@auth_required('token')
     def post(self):
         data = request.get_json()
         professional = Professional(
@@ -210,6 +210,7 @@ class ProfessionalListAPI(Resource):
 # Service Requests List API
 class ServiceRequestListAPI(Resource):
     @marshal_with(service_requests_fields)
+    # ##@auth_required('token')
     def get(self):
         # Get all service requests
         # if not current_user.is_admin:
@@ -238,6 +239,7 @@ class ServiceRequestListAPI(Resource):
         return enriched_service_requests
 
     # @role_required(0)
+    ##@auth_required('token')
     def post(self):
         data = request.get_json()
         service_request = ServiceRequest(
@@ -258,7 +260,7 @@ class ServiceRequestListAPI(Resource):
 class ProfessionalAPI(Resource):
 
     @marshal_with(professionals_fields)
-    # @auth_required('token')
+    ##@auth_required('token')
     def get(self, professional_id):
         professional = Professional.query.get(professional_id)
         if not professional:
@@ -311,7 +313,7 @@ class ProfessionalAPI(Resource):
 # class ProfessionalAPI(Resource):
 
 #     @marshal_with(professionals_fields)
-#     # @auth_required('token')
+#     # ##@auth_required('token')
 #     def get(self, professional_id):
 #         professional = Professional.query.get(professional_id)
 #         if not professional:
@@ -338,14 +340,14 @@ class ProfessionalAPI(Resource):
 class ServiceRequestAPI(Resource):
 
     @marshal_with(service_requests_fields)
-    # @auth_required('token')
+    ##@auth_required('token')
     def get(self, request_id):
         request = ServiceRequest.query.get(request_id)
         if not request:
             return {"message": "Service request not found"}, 404
         return request
 
-    # @auth_required('token')
+    ##@auth_required('token')
     def delete(self, request_id):
         request = ServiceRequest.query.get(request_id)
         if not request:
