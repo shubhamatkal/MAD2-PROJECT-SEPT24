@@ -27,6 +27,8 @@ class MultiTableUserDatastore(SQLAlchemyUserDatastore):
 def custom_verify_password(email, password):
     datastore = MultiTableUserDatastore(db, Admin, Customer, Professional)  # Role not needed for verification
     user = datastore.find_user_(email=email)
+    if user == None:
+        return None
     print(user, "this is nside user with valid email")
     print(user.password, "this is user password")
     check = verify_password(password, user.password)

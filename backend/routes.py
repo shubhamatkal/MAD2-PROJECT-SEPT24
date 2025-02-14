@@ -89,9 +89,17 @@ def register_routes(app):
             return jsonify({"message" : "invalid inputs"}), 404
         # password = hash_password(password)
         print(password, "this is enteredt password")
+        # valid_email = find_user(email)
         user = custom_verify_password(email, password)
+        if user == None:
+            print("user not found")
+            
+            return jsonify({"message": "Invalid credentials"}), 401
         print(user.full_name, "this is user")
         if user.role_id == 2:
+            print(user.is_approved, "this is inside role 2")
+            if not user.is_approved:
+                return jsonify({"message": "Your profile is not approved yet. Please wait for admin approval or contact admin if banned."}), 403
             return jsonify({'token' : user.get_auth_token(), 'email' : user.user_id, 'role' : user.role_id,
 			 'id' : user.id, 'fullname' : user.full_name})
         elif user.role_id == 0 or user.role_id == 1:
