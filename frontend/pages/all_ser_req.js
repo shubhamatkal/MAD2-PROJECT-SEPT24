@@ -11,7 +11,6 @@ export default {
 			  <th>Professional</th>
 			  <th>Date of Request</th>
 			  <th>Status</th>
-			  <th>Action</th>
 			</tr>
 		  </thead>
 		  <tbody>
@@ -22,10 +21,6 @@ export default {
 			  <td>{{ request.professional_name }}</td>
 			  <td>{{ request.date_of_request }}</td>
 			  <td>{{ request.service_status }}</td>
-			  <td>
-				<button class="btn btn-primary btn-sm">Accept</button>
-				<button class="btn btn-danger btn-sm">Reject</button>
-			  </td>
 			</tr>
 		  </tbody>
 		</table>

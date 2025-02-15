@@ -1,4 +1,4 @@
-from flask import jsonify, request
+from flask import jsonify, request,make_response
 from flask_restful import Api, Resource, fields, marshal_with
 from flask_security import auth_required, current_user
 from flask import current_app as app
@@ -82,20 +82,26 @@ class ServiceAPI(Resource):
     # @marshal_with(services_fields)
     #@auth_required('token')
     def delete(self, service_id):
-        # Delete service
-        # if not current_user.is_admin:
-        #     return {"message": "Unauthorized"}, 403
-        
+        # Fetch service
         service = Service.query.get_or_404(service_id)
-        
+
+        # Check if professionals are linked to this service
+        linked_professionals = Professional.query.filter_by(service_name=service.name).first()
+
+        if linked_professionals:
+            response = jsonify({"message": f"Cannot delete '{service.name}' because professionals are linked to it."})
+            return make_response(response, 400)  # Ensure response is properly structured
+
         try:
             db.session.delete(service)
             db.session.commit()
-            return {"message": "Service deleted successfully"}, 200
-        
+            response = jsonify({"message": "Service deleted successfully"})
+            return make_response(response, 200)
+
         except Exception as e:
             db.session.rollback()
-            return {"message": str(e)}, 500
+            response = jsonify({"message": str(e)})
+            return make_response(response, 500)
 
 
 
@@ -295,18 +301,35 @@ class ProfessionalAPI(Resource):
             return {"message": str(e)}, 500
 
     def delete(self, professional_id):
-        # if not current_user.is_admin:
-        #     return {"message": "Unauthorized"}, 403
-        
-        professional = Professional.query.get_or_404(professional_id)
-        
-        try:
-            db.session.delete(professional)
-            db.session.commit()
-            return {"message": "Professional deleted successfully"}, 200
-        except Exception as e:
-            db.session.rollback()
-            return {"message": str(e)}, 500
+            # Fetch professional
+            professional = Professional.query.get_or_404(professional_id)
+
+            # Check if professional has any service requests
+            service_requests = ServiceRequest.query.filter_by(professional_id=professional.id).all()
+
+            # If there are service requests, check their status
+            for request in service_requests:
+                if request.service_status in ["pending", "assigned"]:
+                    return make_response(
+                        jsonify({
+                            "message": f"Cannot delete {professional.full_name} because they are handling an ongoing service."
+                        }), 
+                        400
+                    )
+
+            # If no pending/assigned services, delete all related service requests first
+            try:
+                for request in service_requests:
+                    db.session.delete(request)
+
+                # Now delete the professional
+                db.session.delete(professional)
+                db.session.commit()
+
+                return make_response(jsonify({"message": "Professional deleted successfully"}), 200)
+            except Exception as e:
+                db.session.rollback()
+                return make_response(jsonify({"message": str(e)}), 500)
 
 
 # ### Professionals API
@@ -527,7 +550,7 @@ class CustomerServiceRequestsResource(Resource):
             # Get customer ID from request body
             data = request.get_json()
             customer_id = data.get('customer_id')
-            
+            print(customer_id)
             if not customer_id:
                 return {
                     'message': 'Customer ID is required',

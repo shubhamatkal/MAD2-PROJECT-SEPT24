@@ -207,11 +207,13 @@ def register_routes(app):
         # return redirect(url_for('login'))
     @app.route('/api/services', methods=['POST'])
     def create_service():
+        print("inside create service")
         # Ensure only admin can create services
         # if not current_user.is_admin:
         #     return jsonify({"message": "Unauthorized"}), 403
         
         data = request.json
+        print(data)
         
         # Validate input
         if not all(key in data for key in ['name', 'base_price', 'time_required', 'description']):

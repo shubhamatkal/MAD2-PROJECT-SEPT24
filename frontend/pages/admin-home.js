@@ -207,7 +207,7 @@ export default {
                   </button>
                   <button 
                     class="btn btn-sm btn-warning ml-1" 
-                    @click="updateProfessionalStatus(professional.id, -1)"
+                    @click="confirmDeleteProfessional(professional.id)"
                   >
                     Reject
                   </button>
@@ -263,7 +263,6 @@ export default {
           <th>Professional</th>
           <th>Date of request</th>
           <th>Status</th>
-          <th>Action</th>
         </tr>
       </thead>
       <tbody>
@@ -274,10 +273,6 @@ export default {
           <td>{{ request.professional_name }}</td>
           <td>{{ request.date_of_request }}</td>
           <td>{{ request.service_status }}</td>
-          <td>
-            <button class="btn btn-primary btn-sm">Accept</button>
-            <button class="btn btn-danger btn-sm">Reject</button>
-          </td>
         </tr>
       </tbody>
     </table>
@@ -395,27 +390,30 @@ export default {
         },
 
         async deleteProfessional(id) {
-            try {
-                const response = await fetch(`/api/professionals/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authentication-Token': this.$store.state.auth_token,
-                    }
-                });
-
-                if (response.ok) {
-                    // Remove professional from the list
-                    this.professionals = this.professionals.filter(p => p.id !== id);
-                    alert('Professional deleted successfully!');
-                } else {
-                    const errorData = await response.json();
-                    alert(`Error: ${errorData.message || 'Failed to delete professional'}`);
-                }
-            } catch (error) {
-                console.error("Error deleting professional:", error);
-                alert('An error occurred while deleting the professional');
-            }
-        },
+          if (!confirm('Are you sure you want to delete this professional?')) return;
+      
+          try {
+              const response = await fetch(`/api/professionals/${id}`, {
+                  method: 'DELETE',
+                  headers: {
+                      'Authentication-Token': this.$store.state.auth_token,
+                  }
+              });
+      
+              const responseData = await response.json();
+      
+              if (response.ok) {
+                  // Remove professional from the list
+                  this.professionals = this.professionals.filter(p => p.id !== id);
+                  alert('Professional deleted successfully!');
+              } else {
+                  alert(`Error: ${responseData.message || 'Failed to delete professional'}`);
+              }
+          } catch (error) {
+              console.error("Error deleting professional:", error);
+              alert('An error occurred while deleting the professional');
+          }
+      },
 
         async fetchData(endpoint) {
             try {
@@ -512,29 +510,31 @@ export default {
         },
         
         async deleteService(serviceId) {
-            if (!confirm('Are you sure you want to delete this service?')) return;
-            
-            try {
-                const response = await fetch(`/api/services/${serviceId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authentication-Token': this.$store.state.auth_token,
-                    }
-                });
-                
-                if (response.ok) {
-                    // Remove service from the list
-                    this.services = this.services.filter(s => s.id !== serviceId);
-                    alert('Service deleted successfully!');
-                } else {
-                    const errorData = await response.json();
-                    alert(`Error: ${errorData.message || 'Failed to delete service'}`);
-                }
-            } catch (error) {
-                console.error("Error deleting service:", error);
-                alert('An error occurred while deleting the service');
-            }
-        },
+          if (!confirm('Are you sure you want to delete this service?')) return;
+      
+          try {
+              const response = await fetch(`/api/services/${serviceId}`, {
+                  method: 'DELETE',
+                  headers: {
+                      'Authentication-Token': this.$store.state.auth_token,
+                  }
+              });
+      
+              const data = await response.json(); // Ensure parsing works correctly
+      
+              if (response.ok) {
+                  // Remove service from the list
+                  this.services = this.services.filter(s => s.id !== serviceId);
+                  alert('Service deleted successfully!');
+              } else {
+                  // Show error message
+                  alert(`Error: ${data.message || 'Failed to delete service'}`);
+              }
+          } catch (error) {
+              console.error("Error deleting service:", error);
+              alert('An error occurred while deleting the service');
+          }
+      },
         
         logout() {
             localStorage.removeItem('user');

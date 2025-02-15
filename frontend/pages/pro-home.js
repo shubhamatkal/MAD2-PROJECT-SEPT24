@@ -32,13 +32,13 @@ export default {
 					<div class="btn-group btn-group-sm" role="group">
 					  <button 
 						class="btn btn-success" 
-						@click="updateServiceRequestStatus(request.id, 'Assigned')"
+						@click="updateServiceRequestStatus(request.id, 'assigned')"
 					  >
 						Accept
 					  </button>
 					  <button 
 						class="btn btn-danger" 
-						@click="updateServiceRequestStatus(request.id, 'Rejected')"
+						@click="updateServiceRequestStatus(request.id, 'rejected')"
 					  >
 						Reject
 					  </button>

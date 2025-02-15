@@ -9,7 +9,7 @@ export default {
         <div v-if="isLoggedIn">
           <router-link v-if="userRole === 0" to="/admin-home">Admin Home</router-link>
           <router-link v-if="userRole === 1" to="/home-customer">Customer Home</router-link>
-          <router-link v-if="userRole === 2" to="/home-professional">Professional Home</router-link>
+          <router-link v-if="userRole === 2" to="/professional-home">Professional Home</router-link>
           
           <router-link to="/profile">Profile</router-link>
           <button @click="logout">Logout</button>
