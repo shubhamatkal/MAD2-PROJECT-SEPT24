@@ -48,6 +48,7 @@ export default {
 	  },
 	  async bookProfessional(professionalId) {
 		try {
+			console.log(this.getUserId(), "this.getUserId()");
 		  const response = await fetch('/api/book', {
 			method: 'POST',
 			headers: {
@@ -56,7 +57,7 @@ export default {
 			body: JSON.stringify({
 			  professional_id: professionalId,
 			  service_id: this.serviceId,
-			  user_id: this.getUserId()
+			  user_id: this.getUserId(),
 			})
 		  });
 		  
@@ -71,7 +72,17 @@ export default {
 		}
 	  },
 	  getUserId() {
-		return 1; // Placeholder
+		const userData = localStorage.getItem("user"); 
+		if (userData) {
+		  try {
+			const userObj = JSON.parse(userData);
+			return userObj.id || 1;  // Return actual ID or default to 1
+		  } catch (error) {
+			console.error("Error parsing user data:", error);
+			return 1; 
+		  }
+		}
+		return 1; // Default if no user data is found
 	  }
 	}
   }

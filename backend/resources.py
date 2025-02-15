@@ -560,30 +560,32 @@ class CustomerServiceRequestsResource(Resource):
             # Query service requests with joined professional and service information
             service_requests = (
                 db.session.query(
-                    ServiceRequest, 
+                    ServiceRequest.id,
+                    ServiceRequest.service_status,
                     Professional.full_name.label('professional_name'),
                     Professional.phone.label('professional_phone'),
-                    Service.name.label('service_name')
+                    Service.name.label('service_name'),
+                    ServiceRequest.date_of_completion,
                 )
-                .join(Professional, ServiceRequest.professional_id == Professional.id, isouter=True)
-                .join(Service, ServiceRequest.service_id == Service.id)
+                .outerjoin(Professional, ServiceRequest.professional_id == Professional.id)
+                .outerjoin(Service, ServiceRequest.service_id == Service.id)
                 .filter(ServiceRequest.customer_id == customer_id)
-                .order_by(ServiceRequest.date_of_request.desc())  # Most recent first
+                .order_by(ServiceRequest.date_of_request.desc())
                 .all()
             )
+            print(service_requests)
             print("done till here")
             # Prepare the response data
             results = []
-            for (service_request, professional_name, professional_phone, service_name) in service_requests:
+            for (service_request,status, professional_name, professional_phone, service_name,doc) in service_requests:
                 results.append({
                     # ServiceRequest model fields
-                    'id': service_request.id,
-                    'service_id': service_request.service_id,
-                    'professional_id': service_request.professional_id,
-                    'date_of_request': service_request.date_of_request.isoformat() if service_request.date_of_request else None,
-                    'date_of_completion': service_request.date_of_completion.isoformat() if service_request.date_of_completion else None,
-                    'status': service_request.service_status,
-                    'remarks': service_request.remarks,
+                    'id': service_request,
+                    # 'professional_id': service_request.professional_id,
+                    # 'date_of_request': service_request.date_of_request.isoformat() if service_request.date_of_request else None,
+                    'date_of_completion': doc,
+                    'status': status,
+                    # 'remarks': service_request.remarks,
                     
                     # Additional professional and service details
                     'professional_name': professional_name,

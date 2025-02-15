@@ -48,7 +48,7 @@ export default {
         <table v-if="displayedServiceRequests.length" class="table table-bordered">
           <thead>
             <tr>
-              <th scope="col">Sr. No</th>
+              <th scope="col">Service id</th>
               <th scope="col">Service Name</th>
               <th scope="col">Professional Name</th>
               <th scope="col">Phone No.</th>
