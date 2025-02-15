@@ -122,7 +122,7 @@ export default {
 		  
 		  // Filter new service requests (with status 'requested')
 		  this.newServiceRequests = allRequests.filter(
-			request => request.service_status === 'Requested'
+			request => request.service_status === 'requested'
 		  );
 		  
 		  // Filter and limit service history to last 5 entries

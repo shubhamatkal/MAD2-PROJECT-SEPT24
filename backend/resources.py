@@ -406,6 +406,7 @@ class ProfessionalServiceRequestsResource(Resource):
                 .filter(ServiceRequest.professional_id == professional_id)
                 .all()
             )
+            print(service_requests, "this is service requests")
             print("completed till this ")
             # Prepare the response data
             results = []
@@ -842,7 +843,7 @@ class BookProfessionalResource(Resource):
                 customer_id=data['user_id'],
                 professional_id=data['professional_id'],
                 date_of_request=datetime.now(),
-                service_status='pending'
+                service_status='requested'
             )   
         
             db.session.add(new_service_request)
