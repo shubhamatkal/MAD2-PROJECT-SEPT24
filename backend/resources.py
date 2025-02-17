@@ -46,6 +46,107 @@ service_requests_fields = {
     'remarks': fields.String,
 }
 
+#rating
+class ServiceRequestRate(Resource):
+    def put(self, request_id):
+        """
+        Rate a completed service request.
+        
+        :param request_id: ID of the service request to update
+        :return: Updated service request details or error message
+        """
+        try:
+            # Fetch the service request from the database
+            service_request = ServiceRequest.query.get_or_404(request_id)
+            data = request.get_json()
+
+            # Check if the status is "completed"
+            if service_request.service_status != "completed":
+                return {'message': 'Only completed requests can be rated'}, 400
+
+            # Validate input
+            rating = data.get('rating')
+            rating_remark = data.get('rating_remark')
+
+            if not rating or not (1 <= rating <= 5):
+                return {'message': 'Rating must be between 1 and 5'}, 400
+
+            # Update service request
+            service_request.rating = rating
+            service_request.rating_remark = rating_remark
+            service_request.service_status = "rated"
+
+            db.session.commit()
+
+            return {
+                'message': 'Service request rated successfully',
+                'service_request': {
+                    'id': service_request.id,
+                    'service_status': service_request.service_status,
+                    'rating': service_request.rating,
+                    'rating_remark': service_request.rating_remark
+                }
+            }, 200
+
+        except Exception as e:
+            db.session.rollback()
+            return {'message': 'An error occurred while rating the service request', 'error': str(e)}, 500
+
+
+class ServiceRequestStatusUpdate(Resource):
+    def put(self, request_id):
+        """
+        Update the status of a service request.
+        
+        :param request_id: ID of the service request to update
+        :return: Updated service request details or error message
+        """
+        try:
+            # Fetch the service request from the database
+            service_request = ServiceRequest.query.get_or_404(request_id)
+            data = request.get_json()
+
+            # Get the new status
+            new_status = data.get('service_status')
+            if not new_status:
+                return {'message': 'Status is required'}, 400
+
+            # Define allowed transitions
+            allowed_transitions = {
+                'requested': ['cancelled'],
+                'pending': ['completed'],
+                'completed': ['rated']
+            }
+
+            # Check if the transition is valid
+            if service_request.service_status not in allowed_transitions or \
+               new_status not in allowed_transitions[service_request.service_status]:
+                return {'message': 'Invalid status transition'}, 400
+
+            # Update status
+            service_request.service_status = new_status
+
+            # If marking as completed or cancelling, set the completion date
+            if new_status in ['completed', 'cancelled']:
+                service_request.date_of_completion = datetime.utcnow()
+
+            db.session.commit()
+
+            # Response
+            return {
+                'message': 'Service request updated successfully',
+                'service_request': {
+                    'id': service_request.id,
+                    'service_status': service_request.service_status,
+                    'date_of_completion': service_request.date_of_completion.isoformat() if service_request.date_of_completion else None
+                }
+            }, 200
+
+        except Exception as e:
+            db.session.rollback()
+            return {'message': 'An error occurred while updating the service request', 'error': str(e)}, 500
+
+
 ### Services API
 class ServiceAPI(Resource):
     # @marshal_with(services_fields)
@@ -878,3 +979,7 @@ api.add_resource(ProfessionalServiceRequestsResourcePut, '/service-requests/<int
 api.add_resource(CustomerServiceRequestsResource, '/customer_service_requests')
 #close service request
 api.add_resource(ServiceRequestCloseResource, '/service_requests/<int:request_id>/close')
+api.add_resource(ServiceRequestStatusUpdate, '/service-requests/<int:request_id>/update-status')
+
+# Add resource to API
+api.add_resource(ServiceRequestRate, '/service-requests/<int:request_id>/rate')

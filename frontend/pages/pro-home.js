@@ -128,7 +128,7 @@ export default {
 		  // Filter and limit service history to last 5 entries
 		  this.serviceHistory = allRequests
 			.filter(request => 
-			  ['assigned', 'requested', 'rejected'].includes(request.service_status.toLowerCase())
+			  ['pending', 'requested', 'closed', 'rated','cancelled'].includes(request.service_status.toLowerCase())
 			)
 			.sort((a, b) => new Date(b.date_of_completion) - new Date(a.date_of_completion))
 			.slice(0, 5);

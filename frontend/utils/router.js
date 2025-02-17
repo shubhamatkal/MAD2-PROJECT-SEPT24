@@ -11,6 +11,7 @@ import ProAllServiceRequests from "../pages/pro_all_ser_req.js";
 import CusAllServiceRequests from "../pages/cus_full_history.js";
 import rate from "../pages/rate.js";
 import Services from "../pages/services.js";
+import RateServicePage from "../pages/RateServicePage.js";
 
 import store from './store.js'
 
@@ -28,7 +29,8 @@ const routes = [
     {path : '/pro_full_history', component : ProAllServiceRequests,meta : {requiresLogin : true}},
     {path : '/cus_full_history', component : CusAllServiceRequests,meta : {requiresLogin : true}},
     {path : '/rate/:requestId', component : rate,meta : {requiresLogin : true}},
-    {path : '/services/:serviceId', component : Services,meta : {requiresLogin : true}}
+    {path : '/services/:serviceId', component : Services,meta : {requiresLogin : true}},
+    { path: "/rate/:requestId", component: RateServicePage },
 ]
 
 const router = new VueRouter({

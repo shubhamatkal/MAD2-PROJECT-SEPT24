@@ -66,13 +66,35 @@ export default {
               <td>{{ request.date_of_completion || 'N/A' }}</td>
               <td>{{ request.status }}</td>
               <td>
-                <button 
-                  v-if="['assigned', 'pending'].includes(request.status.toLowerCase())"
-                  @click="closeServiceRequest(request.id)"
-                  class="btn btn-sm btn-outline-danger"
-                >
-                  Close
-                </button>
+              <!-- Cancel Button for "requested" status -->
+              <button 
+                v-if="request.status.toLowerCase() === 'requested'" 
+                @click="cancelServiceRequest(request.id)" 
+                class="btn btn-sm btn-outline-warning"
+              >
+                Cancel
+              </button>
+          
+              <!-- Mark as Completed Button for "pending" status -->
+              <button 
+                v-if="request.status.toLowerCase() === 'pending'" 
+                @click="markAsCompleted(request.id)" 
+                class="btn btn-sm btn-outline-success"
+              >
+                Mark as Completed
+              </button>
+          
+          
+              <!-- Rate Button for "completed" status -->
+              <button 
+              v-if="request.status.toLowerCase() === 'completed'" 
+              @click="$router.push({ path: '/rate/' + request.id })"
+              class="btn btn-sm btn-outline-primary"
+            >
+              Rate
+            </button>
+          
+              <!-- No Button for "rated" or "cancelled" status -->
               </td>
             </tr>
           </tbody>
@@ -144,11 +166,76 @@ export default {
         return [];
       }
     },
-    async closeServiceRequest(requestId) {
+
+    async cancelServiceRequest(requestId) {
+      try {
+        const response = await fetch(`/api/service-requests/${requestId}/update-status`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ service_status: "cancelled" })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          alert("Service request cancelled successfully.");
+          this.refreshData(); // Refresh the UI
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error("Error cancelling request:", error);
+      }
+    },
+
+    async markAsCompleted(requestId) {
+      try {
+        const response = await fetch(`/api/service-requests/${requestId}/update-status`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ service_status: "completed" })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          alert("Service request marked as completed.");
+          this.refreshData(); // Refresh the UI
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error("Error marking request as completed:", error);
+      }
+    },
+
+    async rateServiceRequest(requestId) {
+      try {
+        const response = await fetch(`/api/service-requests/${requestId}/update-status`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ service_status: "rated" })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          alert("Service request rated successfully.");
+          this.refreshData(); // Refresh the UI
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error("Error rating request:", error);
+      }
+    },
+
+    refreshData() {
+      // Fetch latest service request data
+      // (Assuming there's a method to update the request list)
+      this.$emit("refreshRequests");
+    },
+
+
+    async CcancelServiceRequest(requestId) {
       // For assigned requests, redirect to rating page
       if (this.serviceRequests.some(request => 
         request.id === requestId && 
-        request.status.toLowerCase() === 'assigned'
+        request.status.toLowerCase() === 'requested'
       )) {
         this.$router.push(`/rate/${requestId}`);
         return;
