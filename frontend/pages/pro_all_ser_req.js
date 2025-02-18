@@ -19,6 +19,7 @@ export default {
 				<th>Completion Date</th>
 				<th>Status</th>
 				<th>Rating</th>
+				<th>Action</th>
 			</tr>
 			</thead>
 			<tbody>
@@ -31,6 +32,14 @@ export default {
 				<td>{{ formatDate(history.date_of_completion) }}</td>
 				<td>{{ history.service_status }}</td>
 				<td>{{ history.rating || 'N/A' }}</td>
+				<td>
+				<button 
+				  v-if="history.service_status === 'pending'" 
+				  class="btn btn-primary btn-sm" 
+				  @click="markAsCompleted(history.id)">
+				  Mark as Completed
+				</button>
+			  </td>
 			</tr>
 			</tbody>
 		</table>
@@ -73,11 +82,7 @@ export default {
 			
 			// Filter and limit service history to last 5 entries
 			this.serviceHistory = allRequests
-			  .filter(request => 
-				['assigned', 'requested', 'rejected'].includes(request.service_status.toLowerCase())
-			  )
-			  .sort((a, b) => new Date(b.date_of_completion) - new Date(a.date_of_completion))
-			  ;
+			.sort((a, b) => new Date(b.date_of_completion) - new Date(a.date_of_completion));
   
 			  console.log(this.serviceHistory, 'serviceHistory');
 		  } catch (error) {
@@ -85,27 +90,23 @@ export default {
 			// Optionally show error message to user
 		  }
 		},
-		// async updateServiceRequestStatus(requestId, newStatus) {
-		//   try {
-		// 	const response = await fetch(`/api/service-requests/${requestId}`, {
-		// 	  method: 'PUT',
-		// 	  headers: {
-		// 		'Content-Type': 'application/json'
-		// 	  },
-		// 	  body: JSON.stringify({ service_status: newStatus })
-		// 	});
-			
-		// 	if (!response.ok) {
-		// 	  throw new Error('Failed to update service request status');
-		// 	}
-			
-		// 	// Refresh the service requests after successful update
-		// 	this.fetchServiceRequests();
-		//   } catch (error) {
-		// 	console.error('Error updating service request status:', error);
-		// 	// Optionally show error message to user
-		//   }
-		// },
+
+		async updateServiceRequestStatus(requestId, newStatus) {
+			try {
+			  const response = await fetch(`/api/service-requests/${requestId}`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ service_status: newStatus })
+			  });
+			  if (!response.ok) throw new Error('Failed to update service request status');
+			  this.fetchServiceRequests();
+			} catch (error) {
+			  console.error('Error updating service request status:', error);
+			}
+		  },
+		  async markAsCompleted(requestId) {
+			this.updateServiceRequestStatus(requestId, 'closed');
+		  },
 		formatDate(dateString) {
 		  if (!dateString) return 'N/A';
 		  return new Date(dateString).toLocaleDateString();

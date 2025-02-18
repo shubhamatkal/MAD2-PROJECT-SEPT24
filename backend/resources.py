@@ -958,6 +958,68 @@ class BookProfessionalResource(Resource):
         # # For now, just return a success message
         # return {'message': 'Booking successful'}, 201
 
+
+
+# class CustomerServiceRequestsResource(Resource):
+#     def post(self):
+#         try:
+#             data = request.get_json()
+#             customer_id = data.get('customer_id')
+#             if not customer_id:
+#                 return {'message': 'Customer ID is required', 'error': 'Bad Request'}, 400
+
+#             service_requests = (
+#                 db.session.query(
+#                     ServiceRequest.id,
+#                     ServiceRequest.service_status,
+#                     ServiceRequest.date_of_completion,
+#                     ServiceRequest.professional_id,
+#                     ServiceRequest.customer_id,
+#                 )
+#                 .filter(ServiceRequest.customer_id == customer_id)
+#                 .order_by(ServiceRequest.date_of_request.desc())
+#                 .all()
+#             )
+
+#             results = [
+#                 {
+#                     'id': request.id,
+#                     'status': request.service_status,
+#                     'date_of_completion': request.date_of_completion,
+#                 }
+#                 for request in service_requests
+#             ]
+#             return jsonify(results)
+#         except Exception as e:
+#             db.session.rollback()
+#             return {'message': 'An error occurred while fetching service requests', 'error': str(e)}, 500
+
+class UpdateServiceRequestStatusResource(Resource):
+    def put(self, request_id):
+        try:
+            data = request.get_json()
+            new_status = data.get('service_status')
+            if not new_status:
+                return {'message': 'Service status is required', 'error': 'Bad Request'}, 400
+
+            service_request = ServiceRequest.query.get(request_id)
+            if not service_request:
+                return {'message': 'Service request not found', 'error': 'Not Found'}, 404
+
+            service_request.service_status = new_status
+            if new_status == 'closed':
+                service_request.date_of_completion = db.func.current_timestamp()
+
+            db.session.commit()
+            return {'message': 'Service request updated successfully'}
+        except Exception as e:
+            db.session.rollback()
+            return {'message': 'An error occurred while updating service request', 'error': str(e)}, 500
+
+
+# api.add_resource(CustomerServiceRequestsResource, '/customer_service_requests')
+api.add_resource(UpdateServiceRequestStatusResource, '/service-requests/<int:request_id>')
+
 # Add these resources to your API
 api.add_resource(ProfessionalsByServiceResource, '/professionals/service/<int:service_id>')
 api.add_resource(BookProfessionalResource, '/book')

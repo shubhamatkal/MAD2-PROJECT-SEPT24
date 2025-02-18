@@ -30,18 +30,8 @@ export default {
 				  <td>{{ request.service_name }}</td>
 				  <td>
 					<div class="btn-group btn-group-sm" role="group">
-					  <button 
-						class="btn btn-success" 
-						@click="updateServiceRequestStatus(request.id, 'assigned')"
-					  >
-						Accept
-					  </button>
-					  <button 
-						class="btn btn-danger" 
-						@click="updateServiceRequestStatus(request.id, 'rejected')"
-					  >
-						Reject
-					  </button>
+					  <button class="btn btn-success" @click="updateServiceRequestStatus(request.id, 'assigned')">Accept</button>
+					  <button class="btn btn-danger" @click="updateServiceRequestStatus(request.id, 'rejected')">Reject</button>
 					</div>
 				  </td>
 				</tr>
@@ -50,13 +40,11 @@ export default {
 			<p v-else class="text-center text-muted">No new service requests</p>
 		  </div>
 		</div>
-  
+		
 		<div class="card">
 		  <div class="card-header d-flex justify-content-between align-items-center">
 			<h2 class="mb-0">Service Request History</h2>
-			<router-link to="/pro_full_history" class="btn btn-primary btn-sm">
-			  View All History
-			</router-link>
+			<router-link to="/pro_full_history" class="btn btn-primary btn-sm">View All History</router-link>
 		  </div>
 		  <div class="card-body">
 			<table class="table table-striped" v-if="serviceHistory.length > 0">
@@ -70,6 +58,7 @@ export default {
 				  <th>Completion Date</th>
 				  <th>Status</th>
 				  <th>Rating</th>
+				  <th>Action</th>
 				</tr>
 			  </thead>
 			  <tbody>
@@ -82,6 +71,14 @@ export default {
 				  <td>{{ formatDate(history.date_of_completion) }}</td>
 				  <td>{{ history.service_status }}</td>
 				  <td>{{ history.rating || 'N/A' }}</td>
+				  <td>
+					<button 
+					  v-if="history.service_status === 'pending'" 
+					  class="btn btn-primary btn-sm" 
+					  @click="markAsCompleted(history.id)">
+					  Mark as Completed
+					</button>
+				  </td>
 				</tr>
 			  </tbody>
 			</table>
@@ -100,7 +97,6 @@ export default {
 	created() {
 	  this.firstName = this.getFirstName();
 	  this.fetchServiceRequests();
-	  console.log(this.firstName);
 	},
 	methods: {
 	  getFirstName() {
@@ -109,60 +105,37 @@ export default {
 	  },
 	  async fetchServiceRequests() {
 		try {
-		  // Fetch service requests for the current professional
 		  const professionalId = this.$store.state.user_id;
 		  const response = await fetch(`/api/service-requests/professional/${professionalId}`);
-		  
-		  if (!response.ok) {
-			throw new Error('Failed to fetch service requests');
-		  }
-		  
+		  if (!response.ok) throw new Error('Failed to fetch service requests');
 		  const allRequests = await response.json();
-		  console.log(allRequests, 'allRequests');
-		  
-		  // Filter new service requests (with status 'requested')
-		  this.newServiceRequests = allRequests.filter(
-			request => request.service_status === 'requested'
-		  );
-		  
-		  // Filter and limit service history to last 5 entries
+		  this.newServiceRequests = allRequests.filter(request => request.service_status === 'requested');
 		  this.serviceHistory = allRequests
-			.filter(request => 
-			  ['pending', 'requested', 'closed', 'rated','cancelled'].includes(request.service_status.toLowerCase())
-			)
 			.sort((a, b) => new Date(b.date_of_completion) - new Date(a.date_of_completion))
 			.slice(0, 5);
-
-			console.log(this.serviceHistory, 'serviceHistory');
 		} catch (error) {
 		  console.error('Error fetching service requests:', error);
-		  // Optionally show error message to user
 		}
 	  },
 	  async updateServiceRequestStatus(requestId, newStatus) {
 		try {
 		  const response = await fetch(`/api/service-requests/${requestId}`, {
 			method: 'PUT',
-			headers: {
-			  'Content-Type': 'application/json'
-			},
+			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ service_status: newStatus })
 		  });
-		  
-		  if (!response.ok) {
-			throw new Error('Failed to update service request status');
-		  }
-		  
-		  // Refresh the service requests after successful update
+		  if (!response.ok) throw new Error('Failed to update service request status');
 		  this.fetchServiceRequests();
 		} catch (error) {
 		  console.error('Error updating service request status:', error);
-		  // Optionally show error message to user
 		}
 	  },
+	  async markAsCompleted(requestId) {
+		this.updateServiceRequestStatus(requestId, 'closed');
+	  },
 	  formatDate(dateString) {
-		if (!dateString) return 'N/A';
-		return new Date(dateString).toLocaleDateString();
+		return dateString ? new Date(dateString).toLocaleDateString() : 'N/A';
 	  }
 	}
   };
+  
