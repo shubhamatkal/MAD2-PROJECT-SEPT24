@@ -39,6 +39,12 @@ export default {
 				  @click="markAsCompleted(history.id)">
 				  Mark as Completed
 				</button>
+				<button 
+				v-if="history.service_status === 'assigned'" 
+				class="btn btn-primary btn-sm" 
+				@click="markAsCompleted(history.id)">
+				Mark as Completed
+			  </button>
 			  </td>
 			</tr>
 			</tbody>

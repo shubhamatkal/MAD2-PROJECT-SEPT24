@@ -115,7 +115,8 @@ class ServiceRequestStatusUpdate(Resource):
             allowed_transitions = {
                 'requested': ['cancelled'],
                 'pending': ['completed'],
-                'completed': ['rated']
+                'completed': ['rated'],
+                'assigned': ['completed'],
             }
 
             # Check if the transition is valid

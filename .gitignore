@@ -8,3 +8,5 @@ __pycache__
 
 # Ensure that the static folder itself is tracked
 !static/
+#ref file no need to upload
+crediantial-notes.txt

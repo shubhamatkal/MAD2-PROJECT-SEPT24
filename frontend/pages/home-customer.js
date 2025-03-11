@@ -83,7 +83,13 @@ export default {
               >
                 Mark as Completed
               </button>
-          
+              <button 
+              v-if="request.status.toLowerCase() === 'assigned'" 
+              @click="markAsCompleted(request.id)" 
+              class="btn btn-sm btn-outline-success"
+            >
+              Mark as Completed
+            </button>
           
               <!-- Rate Button for "completed" status -->
               <button 
