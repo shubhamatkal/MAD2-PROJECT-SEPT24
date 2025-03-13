@@ -35,15 +35,13 @@ export default {
 				<td>
 				<button 
 				  v-if="history.service_status === 'pending'" 
-				  class="btn btn-primary btn-sm" 
-				  @click="markAsCompleted(history.id)">
-				  Mark as Completed
+				  class="btn btn-primary btn-sm">
+				  Accept from homepage
 				</button>
 				<button 
 				v-if="history.service_status === 'assigned'" 
-				class="btn btn-primary btn-sm" 
-				@click="markAsCompleted(history.id)">
-				Mark as Completed
+				class="btn btn-primary btn-sm">
+				you cant mark as completed
 			  </button>
 			  </td>
 			</tr>
