@@ -23,6 +23,58 @@ services_fields = {
     'description': fields.String,
 }
 
+# Customer list endpoint
+class CustomerListResource(Resource):
+    # @auth_required('token')
+    def get(self):
+        # if current_user.role_id != 3:  # Assuming role_id 3 is for admin
+        #     return {"message": "Access denied"}, 403
+            
+        customers = Customer.query.all()
+        # Manually serialize the customer data
+        customer_data = []
+        for customer in customers:
+            customer_data.append({
+                'id': customer.id,
+                'email': customer.email,
+                'full_name': customer.full_name,
+                'address': customer.address,
+                'pin_code': customer.pin_code,
+                'is_active': customer.is_active,
+                'role_id': customer.role_id
+            })
+        return customer_data
+
+
+
+
+# Customer toggle status endpoint
+class CustomerToggleStatusResource(Resource):
+    # @auth_required('token')
+    def patch(self, customer_id):
+        # if current_user.role_id != 3:  # Assuming role_id 3 is for admin
+        #     return {"message": "Access denied"}, 403
+            
+        customer = Customer.query.get(customer_id)
+        if not customer:
+            return {"message": "Customer not found"}, 404
+            
+        data = request.get_json()
+        customer.is_active = data.get('is_active')
+        
+        try:
+            db.session.commit()
+            return {
+                'id': customer.id,
+                'email': customer.email,
+                'full_name': customer.full_name,
+                'is_active': customer.is_active
+            }
+        except Exception as e:
+            db.session.rollback()
+            return {"message": f"Error updating customer: {str(e)}"}, 500
+
+
 professionals_fields = {
     'id': fields.Integer,
     'full_name': fields.String,
@@ -45,6 +97,66 @@ service_requests_fields = {
     'service_status': fields.String,
     'remarks': fields.String,
 }
+
+class BlockUnblockProfessional(Resource):
+    """
+    API resource for blocking and unblocking professionals
+    """
+    # @auth_required('token')
+    # @roles_required('admin')
+    def patch(self, professional_id):
+        """
+        Update professional's approval status between approved (1) and blocked (2)
+        """
+        try:
+            print("inside block unblock professional")
+            # Get the professional by ID
+            professional = Professional.query.get(professional_id)
+            
+            if not professional:
+                print("professional not found")
+                return {"message": "Professional not found"}, 404
+                
+            # Get the new status from request data
+            data = request.get_json()
+            new_status = data.get('is_approved')
+            print(new_status)
+            # Validate the new status
+            if new_status not in [1, 2]:
+                return {"message": "Invalid status. Must be 1 (Approved) or 2 (Blocked)"}, 400
+                
+            # Update the professional's status
+            P = Professional.query.filter_by(id=professional_id).first()
+            print(P)
+            print(P.is_approved)
+            P.is_approved = new_status
+            # professional.is_approved = new_status
+            print(P.__dict__)  # Debugging
+            try:
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                import traceback
+                print("DB Commit Error:", str(e))
+                print(traceback.format_exc())  # Print full error trace
+                return {"message": f"Database error: {str(e)}"}, 500
+
+            print("After update:", P.__dict__)  # Debugging
+            
+            # Return success response
+            status_text = "unblocked" if new_status == 1 else "blocked"
+            return {
+                "message": f"Professional successfully {status_text}",
+                "professional": {
+                    "id": professional.id,
+                    "full_name": professional.full_name,
+                    "is_approved": professional.is_approved
+                }
+            }, 200
+            
+        except Exception as e:
+            db.session.rollback()
+            return {"message": f"Error updating professional: {str(e)}"}, 500
 
 #rating
 class ServiceRequestRate(Resource):
@@ -918,7 +1030,7 @@ class ProfessionalsByServiceResource(Resource):
     def get(self, service_id):
         # Query professionals by service ID
         ser_name = Service.query.filter_by(id=service_id).first().name
-        professionals = Professional.query.filter_by(service_name=ser_name).all()
+        professionals = Professional.query.filter_by(service_name=ser_name, is_approved=1).all()
         
         # Transform professionals to a list of dictionaries
         professionals_list = [{
@@ -1046,3 +1158,10 @@ api.add_resource(ServiceRequestStatusUpdate, '/service-requests/<int:request_id>
 
 # Add resource to API
 api.add_resource(ServiceRequestRate, '/service-requests/<int:request_id>/rate')
+
+#customer
+api.add_resource(CustomerListResource, '/customers')
+api.add_resource(CustomerToggleStatusResource, '/customers/<int:customer_id>/toggle-status')
+
+# Add this line where you set up your API routes
+api.add_resource(BlockUnblockProfessional, '/blockprofessional/<int:professional_id>')

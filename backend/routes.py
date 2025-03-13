@@ -98,11 +98,18 @@ def register_routes(app):
         print(user.full_name, "this is user")
         if user.role_id == 2:
             print(user.is_approved, "this is inside role 2")
-            if not user.is_approved:
+            if user.is_approved == 2:
+                return jsonify({"message": "Your profile is banned. Please contact admin."}), 423
+            if user.is_approved == 0:
                 return jsonify({"message": "Your profile is not approved yet. Please wait for admin approval or contact admin if banned."}), 403
             return jsonify({'token' : user.get_auth_token(), 'email' : user.user_id, 'role' : user.role_id,
 			 'id' : user.id, 'fullname' : user.full_name})
-        elif user.role_id == 0 or user.role_id == 1:
+        elif user.role_id == 0 :
+            return jsonify({'token' : user.get_auth_token(), 'email' : user.email, 'role' : user.role_id,
+                'id' : user.id, 'fullname' : user.full_name})
+        elif user.role_id == 1:
+            if not user.is_active:
+                return jsonify({"message": "Your account is deactivated. Please contact admin."}), 423
             return jsonify({'token' : user.get_auth_token(), 'email' : user.email, 'role' : user.role_id,
                 'id' : user.id, 'fullname' : user.full_name})
         return jsonify({"message": "Invalid credentials"}), 401

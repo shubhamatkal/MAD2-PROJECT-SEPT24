@@ -190,30 +190,48 @@ export default {
               </span>
             </td>
             <td>
-              <div class="btn-group">
-                <button 
-                  class="btn btn-sm btn-danger" 
-                  @click="confirmDeleteProfessional(professional.id)"
-                >
-                  Delete
-                </button>
-                
-                <template v-if="professional.is_approved === 0">
-                  <button 
-                    class="btn btn-sm btn-success ml-1" 
-                    @click="updateProfessionalStatus(professional.id, 1)"
-                  >
-                    Approve
-                  </button>
-                  <button 
-                    class="btn btn-sm btn-warning ml-1" 
-                    @click="confirmDeleteProfessional(professional.id)"
-                  >
-                    Reject
-                  </button>
-                </template>
-              </div>
-            </td>
+  <div class="btn-group">
+    <button 
+      class="btn btn-sm btn-danger" 
+      @click="confirmDeleteProfessional(professional.id)"
+    >
+      Delete
+    </button>
+    
+    <template v-if="professional.is_approved === 0">
+      <button 
+        class="btn btn-sm btn-success ml-1" 
+        @click="updateProfessionalStatus(professional.id, 1)"
+      >
+        Approve
+      </button>
+      <button 
+        class="btn btn-sm btn-warning ml-1" 
+        @click="confirmDeleteProfessional(professional.id)"
+      >
+        Reject
+      </button>
+    </template>
+    
+    <!-- Add Block/Unblock button -->
+    <template v-if="professional.is_approved === 1">
+      <button 
+        class="btn btn-sm btn-secondary ml-1" 
+        @click="blockUnblockProfessional(professional.id, 2)"
+      >
+        Block
+      </button>
+    </template>
+    <template v-if="professional.is_approved === 2">
+      <button 
+        class="btn btn-sm btn-info ml-1" 
+        @click="blockUnblockProfessional(professional.id, 1)"
+      >
+        Unblock
+      </button>
+    </template>
+  </div>
+</td>
           </tr>
         </tbody>
       </table>
@@ -283,28 +301,74 @@ export default {
     </router-link>
     </div>
 
+      <h2>Customers</h2>
+  <table v-if="customers.length" class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Full Name</th>
+        <th>Email</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="customer in visibleCustomers" :key="customer.id">
+        <td>{{ customer.id }}</td>
+        <td>{{ customer.full_name }}</td>
+        <td>{{ customer.email }}</td>
+        <td>
+          <span 
+            :class="{
+              'text-success': customer.is_active,
+              'text-danger': !customer.is_active
+            }"
+          >
+            {{ customer.is_active ? 'Active' : 'Blocked' }}
+          </span>
+        </td>
+        <td>
+          <button 
+            @click="toggleCustomerStatus(customer.id, !customer.is_active)" 
+            class="btn btn-sm"
+            :class="customer.is_active ? 'btn-danger' : 'btn-success'"
+          >
+            {{ customer.is_active ? 'Block' : 'Unblock' }}
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <!-- Button to view all customers -->
+  <div class="text-center mt-3">
+    <router-link to="/all-customers" class="btn btn-secondary">
+      View All Customers
+    </router-link>
+  </div>
+
     </div>
     `,
     
     data() {
-        return {
-            services: [],
-            serviceRequests: [],
-            professionals: [],
-            showServiceModal: false,
-            showProfessionalDetailsModal: false,
-            showServiceDetailsModal: false,
-            professionalsForService: [],
-            currentProfessional: null,
-            isEditMode: false,
-            currentService: {
-                id: null,
-                name: '',
-                base_price: null,
-                time_required: null,
-                description: ''
-            }
-        };
+      return {
+        services: [],
+        serviceRequests: [],
+        professionals: [],
+        customers: [], // Add this line
+        showServiceModal: false,
+        showProfessionalDetailsModal: false,
+        showServiceDetailsModal: false,
+        professionalsForService: [],
+        currentProfessional: null,
+        isEditMode: false,
+        currentService: {
+            id: null,
+            name: '',
+            base_price: null,
+            time_required: null,
+            description: ''
+        }
+    };
     },
     
     computed: {
@@ -312,9 +376,24 @@ export default {
           // Show only the top 2 entries
           return this.serviceRequests.slice(0, 2);
         },
+        visibleCustomers() {
+          // Show only the top 5 customers
+          return this.customers.slice(0, 5);
+        },
       },
 
     methods: {
+
+      getStatusText(isApproved) {
+        switch(isApproved) {
+            case 0: return 'Pending';
+            case 1: return 'Approved';
+            case 2: return 'Blocked';
+            case -1: return 'Rejected';
+            default: return 'Unknown';
+        }
+    },
+
         getStatusText(isApproved) {
             switch(isApproved) {
                 case 0: return 'Pending';
@@ -323,6 +402,34 @@ export default {
                 default: return 'Unknown';
             }
         },
+
+        async blockUnblockProfessional(id, status) {
+          try {
+              const response = await fetch(`/api/blockprofessional/${id}`, {
+                  method: 'PATCH',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'Authentication-Token': this.$store.state.auth_token,
+                  },
+                  body: JSON.stringify({ is_approved: status })
+              });
+      
+              if (response.ok) {
+                  // Update the local professionals list
+                  const professional = this.professionals.find(p => p.id === id);
+                  if (professional) {
+                      professional.is_approved = status;
+                  }
+                  alert(`Professional ${status === 2 ? 'blocked' : 'unblocked'} successfully!`);
+              } else {
+                  const errorData = await response.json();
+                  alert(`Error: ${errorData.message || 'Failed to update professional status'}`);
+              }
+          } catch (error) {
+              console.error("Error updating professional status:", error);
+              alert('An error occurred while updating professional status');
+          }
+      },
 
         async updateProfessionalStatus(id, status) {
             try {
@@ -539,7 +646,41 @@ export default {
         logout() {
             localStorage.removeItem('user');
             this.$router.push('/login');
-        }
+        },
+        async loadAdminData() {
+          this.services = await this.fetchData('/api/services');
+          this.professionals = await this.fetchData('/api/professionals');
+          this.serviceRequests = await this.fetchData('/api/service_requests');
+          this.customers = await this.fetchData('/api/customers'); // Add this line
+      },
+      
+      async toggleCustomerStatus(customerId, newStatus) {
+          try {
+              const response = await fetch(`/api/customers/${customerId}/toggle-status`, {
+                  method: 'PATCH',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'Authentication-Token': this.$store.state.auth_token,
+                  },
+                  body: JSON.stringify({ is_active: newStatus })
+              });
+  
+              if (response.ok) {
+                  // Update the local customers list
+                  const customer = this.customers.find(c => c.id === customerId);
+                  if (customer) {
+                      customer.is_active = newStatus;
+                  }
+                  alert(`Customer ${newStatus ? 'unblocked' : 'blocked'} successfully!`);
+              } else {
+                  const errorData = await response.json();
+                  alert(`Error: ${errorData.message || 'Failed to update customer status'}`);
+              }
+          } catch (error) {
+              console.error("Error updating customer status:", error);
+              alert('An error occurred while updating customer status');
+          }
+      },
     },
     
     mounted() {
@@ -584,6 +725,20 @@ export default {
         display: flex;
         gap: 0.5rem;
     }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+  }
+  
+  .btn-info {
+      background-color: #17a2b8;
+      color: white;
+  }
+  
+  .ml-1 {
+      margin-left: 0.25rem;
+  }
 
 
 

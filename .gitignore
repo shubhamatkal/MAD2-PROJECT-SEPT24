@@ -10,3 +10,4 @@ __pycache__
 !static/
 #ref file no need to upload
 crediantial-notes.txt
+.qodo

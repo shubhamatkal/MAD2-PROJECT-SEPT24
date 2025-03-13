@@ -46,7 +46,7 @@ class Professional(UserMixin,db.Model):
     pin_code = db.Column(db.String(20), nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'), nullable=False, server_default='2')
     phone = db.Column(db.Integer, nullable=True)
-    is_approved = db.Column(db.Boolean, default=False)
+    is_approved = db.Column(db.Integer, default=0)
     # Adding fs_uniquifier field
     fs_uniquifier = db.Column(db.String(255), unique=True, nullable=False)
     def __repr__(self):

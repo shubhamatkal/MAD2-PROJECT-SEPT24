@@ -33,10 +33,14 @@ export default {
                 const data = await res.json();
 
                 if (!res.ok) {
+                    console.log('Login failed:', data);
                     if (res.status === 401) {
                         this.message = 'Invalid email or password. Kindly try again.';
                     } else if (res.status === 403) {
                         this.message = 'Your profile has not been approved by admin yet. Please wait for approval.';
+                    } else if (res.status === 407) {
+                        console.error('User blocked by admin:', data);
+                        this.message = 'Your profile has been blocked by admin. Please contact admin for more information.';
                     } else {
                         this.message = data.message || 'Login failed. Please try again later.';
                     }

@@ -12,6 +12,8 @@ import CusAllServiceRequests from "../pages/cus_full_history.js";
 import rate from "../pages/rate.js";
 import Services from "../pages/services.js";
 import RateServicePage from "../pages/RateServicePage.js";
+import AllCustomers from '../pages/AllCustomers.js'; // Update the path as needed
+
 
 import store from './store.js'
 
@@ -31,6 +33,9 @@ const routes = [
     {path : '/rate/:requestId', component : rate,meta : {requiresLogin : true}},
     {path : '/services/:serviceId', component : Services,meta : {requiresLogin : true}},
     { path: "/rate/:requestId", component: RateServicePage },
+      {
+    path: '/all-customers',
+    component: AllCustomers  },
 ]
 
 const router = new VueRouter({
