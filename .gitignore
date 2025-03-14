@@ -11,3 +11,5 @@ __pycache__
 #ref file no need to upload
 crediantial-notes.txt
 .qodo
+
+./backend/celery/user-downloads/

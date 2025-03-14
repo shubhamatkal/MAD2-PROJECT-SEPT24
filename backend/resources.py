@@ -25,8 +25,10 @@ services_fields = {
 
 # Customer list endpoint
 class CustomerListResource(Resource):
+    @cache.cached(timeout=10, key_prefix="customers")
     # @auth_required('token')
     def get(self):
+        print("Fetching fresh data from the database for all customers list")
         # if current_user.role_id != 3:  # Assuming role_id 3 is for admin
         #     return {"message": "Access denied"}, 403
             
@@ -263,6 +265,7 @@ class ServiceRequestStatusUpdate(Resource):
 ### Services API
 class ServiceAPI(Resource):
     # @marshal_with(services_fields)
+    
     def put(self, service_id):
     # Update existing service
     # if not current_user.is_admin:
@@ -341,7 +344,7 @@ class ServiceAPI(Resource):
 class ServiceListAPI(Resource):
     print("inside service list api")
     @marshal_with(services_fields)
-    # @cache.cached(timeout = 5, key_prefix = "services")
+    @cache.cached(timeout = 10, key_prefix = "services")
     def get(self):
         print("inside get of services")
         services = Service.query.all()
@@ -406,6 +409,7 @@ class ProfessionalListAPI(Resource):
 
     @marshal_with(professionals_fields)
     # #@auth_required('token')
+    @cache.cached(timeout = 10, key_prefix = "professionals")
     def get(self):
         professionals = Professional.query.all()
         print(professionals, "this is professionals")
@@ -431,6 +435,7 @@ class ProfessionalListAPI(Resource):
 class ServiceRequestListAPI(Resource):
     @marshal_with(service_requests_fields)
     # ##@auth_required('token')
+    @cache.cached(timeout = 10, key_prefix = "service_requests")
     def get(self):
         # Get all service requests
         # if not current_user.is_admin:
@@ -481,6 +486,7 @@ class ProfessionalAPI(Resource):
 
     @marshal_with(professionals_fields)
     ##@auth_required('token')
+    @cache.memoize(timeout=10)
     def get(self, professional_id):
         professional = Professional.query.get(professional_id)
         if not professional:

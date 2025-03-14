@@ -1,6 +1,6 @@
 import os 
 from flask import Flask, render_template, jsonify
-from flask import current_app as app, jsonify,request, redirect, url_for, flash
+from flask import current_app as app, jsonify,request, redirect, url_for, flash, send_file
 from flask_security import auth_required, verify_password, hash_password
 from backend.models import db, Customer, Professional
 from werkzeug.utils import secure_filename
@@ -10,6 +10,8 @@ from backend.celery.tasks import add, create_csv
 from celery.result import AsyncResult
 import uuid
 # from backend.auth_utils import role_required
+
+# cache = app.cache
 
 def generate_uniqifier():
     return str(uuid.uuid4())
@@ -31,6 +33,16 @@ def register_routes(app):
         # return '<h1>Home Page</h1>'
         return render_template('index.html')  # You can use this if rendering templates
  
+    @app.get('/cache')
+    @app.cache.cached(timeout=5)
+    def cache():
+        return {'time': str(datetime.now())}
+
+    # @app.get('/cache')
+    # @app.cache.cached(timeout=5)
+    # def cache():
+    #     # cache = get_cache()  # Access cache within the context
+    #     return {'time': str(datetime.now())}
 
 # @app.route('/')
 # def home():
@@ -55,16 +67,24 @@ def register_routes(app):
         else:
             return jsonify({'status': 'processing'})
 
-    @app.get('/cache')
-    @app.cache.cached(timeout=5)
-    def cache():
-        # cache = get_cache()  # Access cache within the context
-        return {'time': str(datetime.now())}
+
 
     @app.get('/create-csv')
     def createCSV():
         task = create_csv.delay()
         return {'task_id': task.id}, 200
+
+    @app.get('/get-csv/<id>')
+    def getCSV(id):
+        result = AsyncResult(id)
+        print(f"Task ID: {id}, Task State: {result.state}, Task Result: {result.result}")
+
+        print(id)
+        print(result.ready())
+        if result.ready():
+            return send_file(f'./backend/celery/user-downloads/{result.result}')  # Send file as attachment
+        else:
+            return jsonify({'status': 'processing'})
 
     ##@auth_required('token')
     def protected():
