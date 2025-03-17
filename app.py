@@ -74,6 +74,7 @@ celery_app = celery_init_app(app)
 # Import any necessary initialization code
 import backend.create_initial_data
 import backend.routes
+import backend.celery.celery_schedule
 #also add here celery code
 
 excel.init_excel(app)
