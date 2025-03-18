@@ -7,6 +7,8 @@ from backend.models import Service, Professional, ServiceRequest, db, Customer
 from flask_restful import reqparse
 import datetime
 from datetime import timezone, datetime
+from flask_limiter.util import get_remote_address
+
 
 cache = app.cache
 

@@ -10,6 +10,7 @@ from backend.celery.celery_factory import celery_init_app
 import flask_excel as excel
 
 
+
 from flask_security.datastore import SQLAlchemyUserDatastore
 
 class MultiTableUserDatastore(SQLAlchemyUserDatastore):
