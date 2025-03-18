@@ -1037,11 +1037,13 @@ class ProfessionalsByServiceResource(Resource):
         # Query professionals by service ID
         ser_name = Service.query.filter_by(id=service_id).first().name
         professionals = Professional.query.filter_by(service_name=ser_name, is_approved=1).all()
-        
+        print(professionals)
         # Transform professionals to a list of dictionaries
         professionals_list = [{
             'id': prof.id,
             'name': prof.full_name,
+            'address': prof.address,
+            'pin_code': prof.pin_code,
             'base_price': 'NA',  # As mentioned, base price not defined
             'avg_rating': 'NA'   # Average rating not present
         } for prof in professionals]

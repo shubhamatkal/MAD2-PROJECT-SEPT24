@@ -20,5 +20,5 @@ def test(arg):
 
 @celery_app.task
 def add(x, y):
-    z = x + y
+    z = x + y 
     print(z)

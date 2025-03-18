@@ -9,7 +9,16 @@ export default {
         <h2>Services 
             <button @click="openAddServiceModal" class="btn btn-success ml-2">Add Service</button>
         </h2>
-        <table v-if="services.length" class="table">
+        <div class="d-flex justify-content-end mb-3">
+    <input 
+      type="text" 
+      v-model="serviceSearchQuery" 
+      placeholder="Search services..." 
+      class="form-control" 
+      style="max-width: 250px;"
+    >
+</div>
+<table v-if="filteredServices.length" class="table">
         <thead>
           <tr>
             <th>ID</th>
@@ -20,7 +29,7 @@ export default {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="service in services" :key="service.id">
+        <tr v-for="service in filteredServices" :key="service.id">
             <td>
               <a href="#" @click.prevent="openServiceDetailsModal(service)">
                 {{ service.id }}
@@ -46,6 +55,9 @@ export default {
           </tr>
         </tbody>
       </table>
+      <div v-else-if="services.length && !filteredServices.length" class="alert alert-info">
+    No services found matching your search.
+</div>
       
       <!-- Service Details Modal -->
       <div v-if="showServiceDetailsModal" class="modal-overlay">
@@ -158,7 +170,17 @@ export default {
         </div>
         
         <h2>Professionals</h2>
-        <table v-if="professionals.length" class="table">
+        <div class="d-flex justify-content-end mb-3">
+            <input 
+              type="text" 
+              v-model="professionalSearchQuery" 
+              placeholder="Search professionals..." 
+              class="form-control" 
+              style="max-width: 250px;"
+            >
+        </div>
+        <table v-if="filteredProfessionals.length" class="table">
+
         <thead>
           <tr>
             <th>ID</th>
@@ -170,8 +192,8 @@ export default {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="professional in professionals" :key="professional.id">
-            <td>
+      <tr v-for="professional in filteredProfessionals" :key="professional.id">
+                  <td>
               <a href="#" @click.prevent="openProfessionalDetailsModal(professional)">
                 {{ professional.id }}
               </a>
@@ -236,6 +258,9 @@ export default {
           </tr>
         </tbody>
       </table>
+      <div v-else-if="professionals.length && !filteredProfessionals.length" class="alert alert-info">
+    No professionals found matching your search.
+</div>
 
       <!-- Professional Details Modal -->
       <div v-if="showProfessionalDetailsModal" class="modal-overlay">
@@ -273,9 +298,18 @@ export default {
         </div>
       </div>
       <h2>Service Requests</h2>
-      <table v-if="visibleServiceRequests.length" class="table">
+      <div class="d-flex justify-content-end mb-3">
+          <input 
+            type="text" 
+            v-model="serviceRequestSearchQuery" 
+            placeholder="Search service requests..." 
+            class="form-control" 
+            style="max-width: 250px;"
+          >
+      </div>
+      <table v-if="filteredVisibleServiceRequests.length" class="table">
       <thead>
-        <tr>
+      <tr >
           <th>ID</th>
           <th>Customer</th>
           <th>Service</th>
@@ -295,6 +329,9 @@ export default {
         </tr>
       </tbody>
     </table>
+    <div v-else-if="serviceRequests.length && !filteredVisibleServiceRequests.length" class="alert alert-info">
+    No service requests found matching your search.
+</div>
     <!-- Button to view all service requests -->
     <div  class="text-center mt-3">
     <router-link to="/all-service-requests" class="btn btn-secondary">
@@ -302,8 +339,17 @@ export default {
     </router-link>
     </div>
 
-      <h2>Customers</h2>
-  <table v-if="customers.length" class="table">
+    <h2>Customers</h2>
+    <div class="d-flex justify-content-end mb-3">
+        <input 
+          type="text" 
+          v-model="customerSearchQuery" 
+          placeholder="Search customers..." 
+          class="form-control" 
+          style="max-width: 250px;"
+        >
+    </div>
+    <table v-if="filteredVisibleCustomers.length" class="table">
     <thead>
       <tr>
         <th>ID</th>
@@ -314,8 +360,8 @@ export default {
       </tr>
     </thead>
     <tbody>
-      <tr v-for="customer in visibleCustomers" :key="customer.id">
-        <td>{{ customer.id }}</td>
+    <tr v-for="customer in filteredVisibleCustomers" :key="customer.id">
+            <td>{{ customer.id }}</td>
         <td>{{ customer.full_name }}</td>
         <td>{{ customer.email }}</td>
         <td>
@@ -340,6 +386,9 @@ export default {
       </tr>
     </tbody>
   </table>
+  <div v-else-if="customers.length && !filteredVisibleCustomers.length" class="alert alert-info">
+    No customers found matching your search.
+</div>
   <!-- Button to view all customers -->
   <div class="text-center mt-3">
     <router-link to="/all-customers" class="btn btn-secondary">
@@ -368,11 +417,71 @@ export default {
             base_price: null,
             time_required: null,
             description: ''
-        }
+        },
+        serviceSearchQuery: '',
+        professionalSearchQuery: '',
+        serviceRequestSearchQuery: '',
+        customerSearchQuery: '',
+        loading: false,
     };
     },
     
     computed: {
+      visibleServiceRequests() {
+        // Show only the top 2 entries
+        return this.serviceRequests.slice(0, 2);
+      },
+      visibleCustomers() {
+        // Show only the top 5 customers
+        return this.customers.slice(0, 5);
+      },
+      // Add these computed properties for filtering
+      filteredServices() {
+        if (!this.serviceSearchQuery) return this.services;
+        const query = this.serviceSearchQuery.toLowerCase();
+        return this.services.filter(service => 
+          service.name.toLowerCase().includes(query) || 
+          (service.description && service.description.toLowerCase().includes(query))
+        );
+      },
+      filteredProfessionals() {
+        if (!this.professionalSearchQuery) return this.professionals;
+        const query = this.professionalSearchQuery.toLowerCase();
+        console.log(this.professionals);
+        return this.professionals.filter(professional => 
+          professional.full_name.toLowerCase().includes(query) || 
+          professional.user_id.toLowerCase().includes(query) ||
+          professional.service_name.toLowerCase().includes(query)
+        );
+      },
+      filteredServiceRequests() {
+        if (!this.serviceRequestSearchQuery) return this.serviceRequests;
+        const query = this.serviceRequestSearchQuery.toLowerCase();
+        return this.serviceRequests.filter(request => 
+          request.customer_name.toLowerCase().includes(query) || 
+          request.service_name.toLowerCase().includes(query) ||
+          request.professional_name.toLowerCase().includes(query)
+        );
+      },
+      filteredVisibleServiceRequests() {
+        // Filter and then get the top 2
+        return this.filteredServiceRequests.slice(0, 2);
+      },
+      filteredCustomers() {
+        if (!this.customerSearchQuery) return this.customers;
+        const query = this.customerSearchQuery.toLowerCase();
+        return this.customers.filter(customer => 
+          customer.full_name.toLowerCase().includes(query) || 
+          customer.email.toLowerCase().includes(query)
+        );
+      },
+      filteredVisibleCustomers() {
+        // Filter and then get the top 5
+        return this.filteredCustomers.slice(0, 5);
+      },
+
+
+
         visibleServiceRequests() {
           // Show only the top 2 entries
           return this.serviceRequests.slice(0, 2);
@@ -384,6 +493,14 @@ export default {
       },
 
     methods: {
+
+      formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
+      },
+      
+
         async export_services_data() {
           const res = await fetch(location.origin+'/create-csv')
           const task_id = (await res.json()).task_id
@@ -709,6 +826,39 @@ export default {
         padding: 10px;
         border-bottom: 1px solid #eee;
     }
+
+
+    .form-control {
+      padding: 0.375rem 0.75rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      border: 1px solid #ced4da;
+      border-radius: 0.25rem;
+  }
+  
+  .d-flex {
+      display: flex;
+  }
+  
+  .justify-content-end {
+      justify-content: flex-end;
+  }
+  
+  .mb-3 {
+      margin-bottom: 1rem;
+  }
+  
+  .alert {
+      padding: 0.75rem 1.25rem;
+      margin-bottom: 1rem;
+      border-radius: 0.25rem;
+  }
+  
+  .alert-info {
+      color: #0c5460;
+      background-color: #d1ecf1;
+      border-color: #bee5eb;
+  }
 
     .service-actions {
         display: flex;

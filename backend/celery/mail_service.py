@@ -20,6 +20,7 @@ def send_email(subject, message, to_email):
 		client.quit()
 
 def monthly_report_customer():
+	pass
 	#write script to loop over all customers and send data like monthly how many services 
 	#they have requested and all how many are open and how many are closed
 
