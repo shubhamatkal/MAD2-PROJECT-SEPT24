@@ -13,6 +13,7 @@ import rate from "../pages/rate.js";
 import Services from "../pages/services.js";
 import RateServicePage from "../pages/RateServicePage.js";
 import AllCustomers from '../pages/AllCustomers.js'; // Update the path as needed
+import Summary from '../pages/summary.js'; // Update the path as needed
 
 
 import store from './store.js'
@@ -36,6 +37,7 @@ const routes = [
       {
     path: '/all-customers',
     component: AllCustomers  },
+    { path: '/summary', component: Summary },
 ]
 
 const router = new VueRouter({
