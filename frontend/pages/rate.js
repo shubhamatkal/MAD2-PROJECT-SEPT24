@@ -67,8 +67,9 @@ export default {
 		  const requestId = this.$route.params.requestId;
 		  const response = await fetch(`/api/service_request_details/${requestId}`, {
 			headers: {
-			  'Authentication-Token': this.$store.state.auth_token,
-			}
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${this.$store.state.auth_token}`,
+			},
 		  });
 		  this.serviceRequest = await response.json();
 		} catch (error) {
@@ -82,8 +83,8 @@ export default {
 		  const response = await fetch('/api/rate_service_request', {
 			method: 'POST',
 			headers: {
-			  'Authentication-Token': this.$store.state.auth_token,
-			  'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${this.$store.state.auth_token}`,
 			},
 			body: JSON.stringify({
 			  request_id: requestId,

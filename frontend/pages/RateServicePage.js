@@ -14,7 +14,14 @@ export default {
 	methods: {
 	  async fetchServiceRequest() {
 		try {
-		  const response = await fetch(`/api/service-requests/${this.requestId}`);
+		  const response = await fetch(`/api/service-requests/${this.requestId}`,
+			{
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${this.$store.state.auth_token}`,
+				},
+			}
+		  );
 		  const data = await response.json();
 		  if (response.ok) {
 			this.serviceRequest = data.service_request;
@@ -35,8 +42,10 @@ export default {
 		try {
 		  const response = await fetch(`/api/service-requests/${this.requestId}/rate`, {
 			method: "PUT",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${this.$store.state.auth_token}`,
+			},			body: JSON.stringify({
 			  rating: this.rating,
 			  rating_remark: this.ratingRemark,
 			}),

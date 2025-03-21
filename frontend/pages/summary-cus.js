@@ -244,8 +244,8 @@ export default {
 		  const response = await fetch(`/api/customer_service_requests`, {
 			method: 'POST',
 			headers: {
-			  'Authentication-Token': this.$store.state.auth_token,
-			  'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${this.$store.state.auth_token}`,
 			},
 			body: JSON.stringify({
 			  customer_id: this.$store.state.user_id

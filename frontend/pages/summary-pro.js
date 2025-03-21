@@ -119,7 +119,14 @@ export default {
 	  async fetchServiceRequests() {
 		try {
 		  const professionalId = this.$store.state.user_id;
-		  const response = await fetch(`/api/service-requests/professional/${professionalId}`);
+		  const response = await fetch(`/api/service-requests/professional/${professionalId}`,
+			{
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${this.$store.state.auth_token}`,
+				},
+			}
+		  );
 		  
 		  if (!response.ok) {
 			throw new Error('Failed to fetch service requests');

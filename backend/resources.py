@@ -3,11 +3,13 @@ from flask_restful import Api, Resource, fields, marshal_with
 from flask_security import auth_required, current_user
 from flask import current_app as app
 from backend.models import Service, Professional, ServiceRequest, db, Customer
-# from backend.auth_utils import role_required
+from backend.auth_utils import role_required
 from flask_restful import reqparse
 import datetime
 from datetime import timezone, datetime
 from flask_limiter.util import get_remote_address
+# from app import role_required, generate_token
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 
 cache = app.cache
@@ -24,59 +26,6 @@ services_fields = {
     'time_required': fields.String,
     'description': fields.String,
 }
-
-# Customer list endpoint
-class CustomerListResource(Resource):
-    @cache.cached(timeout=10, key_prefix="customers")
-    # @auth_required('token')
-    def get(self):
-        print("Fetching fresh data from the database for all customers list")
-        # if current_user.role_id != 3:  # Assuming role_id 3 is for admin
-        #     return {"message": "Access denied"}, 403
-            
-        customers = Customer.query.all()
-        # Manually serialize the customer data
-        customer_data = []
-        for customer in customers:
-            customer_data.append({
-                'id': customer.id,
-                'email': customer.email,
-                'full_name': customer.full_name,
-                'address': customer.address,
-                'pin_code': customer.pin_code,
-                'is_active': customer.is_active,
-                'role_id': customer.role_id
-            })
-        return customer_data
-
-
-
-
-# Customer toggle status endpoint
-class CustomerToggleStatusResource(Resource):
-    # @auth_required('token')
-    def patch(self, customer_id):
-        # if current_user.role_id != 3:  # Assuming role_id 3 is for admin
-        #     return {"message": "Access denied"}, 403
-            
-        customer = Customer.query.get(customer_id)
-        if not customer:
-            return {"message": "Customer not found"}, 404
-            
-        data = request.get_json()
-        customer.is_active = data.get('is_active')
-        
-        try:
-            db.session.commit()
-            return {
-                'id': customer.id,
-                'email': customer.email,
-                'full_name': customer.full_name,
-                'is_active': customer.is_active
-            }
-        except Exception as e:
-            db.session.rollback()
-            return {"message": f"Error updating customer: {str(e)}"}, 500
 
 
 professionals_fields = {
@@ -102,12 +51,58 @@ service_requests_fields = {
     'remarks': fields.String,
 }
 
+# Customer list endpoint
+class CustomerListResource(Resource):
+    @jwt_required()
+    @role_required([0])
+    @cache.cached(timeout=3600, key_prefix="customers_list_all")
+    def get(self):
+        customers = Customer.query.all()
+        customer_data = []
+        for customer in customers:
+            customer_data.append({
+                'id': customer.id,
+                'email': customer.email,
+                'full_name': customer.full_name,
+                'address': customer.address,
+                'pin_code': customer.pin_code,
+                'is_active': customer.is_active,
+                'role_id': customer.role_id
+            })
+        return customer_data
+
+# Customer toggle status endpoint
+class CustomerToggleStatusResource(Resource):
+    @jwt_required()
+    @role_required(0)
+    def patch(self, customer_id):
+        customer = Customer.query.get(customer_id)
+        if not customer:
+            return {"message": "Customer not found"}, 404
+            
+        data = request.get_json()
+        customer.is_active = data.get('is_active')
+        
+        try:
+            db.session.commit()
+            return {
+                'id': customer.id,
+                'email': customer.email,
+                'full_name': customer.full_name,
+                'is_active': customer.is_active
+            }
+        except Exception as e:
+            db.session.rollback()
+            return {"message": f"Error updating customer: {str(e)}"}, 500
+
+
+
 class BlockUnblockProfessional(Resource):
     """
     API resource for blocking and unblocking professionals
     """
-    # @auth_required('token')
-    # @roles_required('admin')
+    @jwt_required()
+    @role_required(0)
     def patch(self, professional_id):
         """
         Update professional's approval status between approved (1) and blocked (2)
@@ -164,6 +159,8 @@ class BlockUnblockProfessional(Resource):
 
 #rating
 class ServiceRequestRate(Resource):
+    @jwt_required()
+    @role_required(1)
     def put(self, request_id):
         """
         Rate a completed service request.
@@ -210,6 +207,8 @@ class ServiceRequestRate(Resource):
 
 
 class ServiceRequestStatusUpdate(Resource):
+    @jwt_required()
+    @role_required([1,2])
     def put(self, request_id):
         """
         Update the status of a service request.
@@ -266,12 +265,9 @@ class ServiceRequestStatusUpdate(Resource):
 
 ### Services API
 class ServiceAPI(Resource):
-    # @marshal_with(services_fields)
-    
+    @jwt_required()
+    @role_required([0])
     def put(self, service_id):
-    # Update existing service
-    # if not current_user.is_admin:
-    #     return {"message": "Unauthorized"}, 403
     
         service = Service.query.get_or_404(service_id)
         
@@ -297,9 +293,8 @@ class ServiceAPI(Resource):
             db.session.rollback()
             return {"message": str(e)}, 500
 
-    # @login_required
-    # @marshal_with(services_fields)
-    #@auth_required('token')
+    @jwt_required()
+    @role_required([0])
     def delete(self, service_id):
         # Fetch service
         service = Service.query.get_or_404(service_id)
@@ -324,46 +319,16 @@ class ServiceAPI(Resource):
 
 
 
-    # # #@auth_required('token')
-    # def get(self, service_id):
-    #     service = Service.query.get(service_id)
-    #     if not service:
-    #         return {"message": "Service not found"}, 404
-    #     return service
-
-    # # #@auth_required('token')
-    # def delete(self, service_id):
-    #     service = Service.query.get(service_id)
-    #     if not service:
-    #         return {"message": "Service not found"}, 404
-
-    #     db.session.delete(service)
-    #     db.session.commit()
-    #     return {"message": "Service deleted"}
-
-
 ### List APIs (Fetching all records)
 class ServiceListAPI(Resource):
-    print("inside service list api")
     @marshal_with(services_fields)
-    @cache.cached(timeout = 10, key_prefix = "services")
-    def get(self):
-        print("inside get of services")
+    @cache.cached(timeout = 3600, key_prefix = "all_services_list")
+    def get(self): #for pro registration options
         services = Service.query.all()
-        print("======")
-        print(type(services), "this is type of services")
-        print(services, "this is services")
-        for service in services:
-            print(service)
-            print(service.name)
-            print(service.price)
-            print(service.time_required)
-            print(service.description)
         return services
-
-    #@auth_required('token')
+    @jwt_required()
+    @role_required([0])
     def post(self):
-        print("inside post of services")
         data = request.json
         print(data, "this is data")
         # Validate input
@@ -408,16 +373,27 @@ class ServiceListAPI(Resource):
 
 # Professionals List API
 class ProfessionalListAPI(Resource):
-
+    @jwt_required()
+    @role_required([0])
     @marshal_with(professionals_fields)
-    # #@auth_required('token')
-    @cache.cached(timeout = 10, key_prefix = "professionals")
+    # @cache.cached(timeout = 3600, key_prefix = "professionals_list_all")
     def get(self):
-        professionals = Professional.query.all()
-        print(professionals, "this is professionals")
-        return professionals
+        try :
+            professionals = Professional.query.all()
+            return professionals
+            print("inside get of professional list api")
+            print("Headers Received:", request.headers)  # Debug request headers
+            current_user = get_jwt_identity()
+            print("Authenticated User:", current_user)  # Check if JWT is working
+            # return jsonify(professionals_data)
+            professionals = Professional.query.all()
+            print(professionals, "this is professionals")
+            return professionals
+        except Exception as e:
+            print(f"Error in professionals API: {str(e)}")
+            return {'error': str(e)}, 500
 
-    ##@auth_required('token')
+
     def post(self):
         data = request.get_json()
         professional = Professional(
@@ -435,9 +411,10 @@ class ProfessionalListAPI(Resource):
 
 # Service Requests List API
 class ServiceRequestListAPI(Resource):
+    @jwt_required()
+    @role_required([0,1])
     @marshal_with(service_requests_fields)
-    # ##@auth_required('token')
-    @cache.cached(timeout = 10, key_prefix = "service_requests")
+    @cache.cached(timeout = 3600, key_prefix = "service_requests_all_v2")
     def get(self):
         # Get all service requests
         # if not current_user.is_admin:
@@ -465,8 +442,8 @@ class ServiceRequestListAPI(Resource):
 
         return enriched_service_requests
 
-    # @role_required(0)
-    ##@auth_required('token')
+    @jwt_required()
+    @role_required([1])
     def post(self):
         data = request.get_json()
         service_request = ServiceRequest(
@@ -485,16 +462,17 @@ class ServiceRequestListAPI(Resource):
 
 ### Professionals API
 class ProfessionalAPI(Resource):
-
+    @jwt_required()
+    @role_required([0,1])
     @marshal_with(professionals_fields)
-    ##@auth_required('token')
-    @cache.memoize(timeout=10)
+    @cache.memoize(timeout=3600)
     def get(self, professional_id):
         professional = Professional.query.get(professional_id)
         if not professional:
             return {"message": "Professional not found"}, 404
         return professional
-
+    @jwt_required()
+    @role_required([0])
     def patch(self, professional_id):
         # Retrieve the professional
         professional = Professional.query.get_or_404(professional_id)
@@ -521,7 +499,8 @@ class ProfessionalAPI(Resource):
             # Rollback in case of any error
             db.session.rollback()
             return {"message": str(e)}, 500
-
+    @jwt_required()
+    @role_required([0])
     def delete(self, professional_id):
             # Fetch professional
             professional = Professional.query.get_or_404(professional_id)
@@ -554,37 +533,12 @@ class ProfessionalAPI(Resource):
                 return make_response(jsonify({"message": str(e)}), 500)
 
 
-# ### Professionals API
-# class ProfessionalAPI(Resource):
-
-#     @marshal_with(professionals_fields)
-#     # ##@auth_required('token')
-#     def get(self, professional_id):
-#         professional = Professional.query.get(professional_id)
-#         if not professional:
-#             return {"message": "Professional not found"}, 404
-#         return professional
-
-#     def delete(self, professional_id):
-#         # if not current_user.is_admin:
-#         #     return {"message": "Unauthorized"}, 403
-        
-#         professional = Professional.query.get_or_404(professional_id)
-        
-#         try:
-#             db.session.delete(professional)
-#             db.session.commit()
-#             return {"message": "Professional deleted successfully"}, 200
-#         except Exception as e:
-#             db.session.rollback()
-#             return {"message": str(e)}, 500
-
-    
-
 ### Service Requests API
 class ServiceRequestAPI(Resource):
-
+    @jwt_required()
+    @role_required([0,1,2])
     @marshal_with(service_requests_fields)
+    @cache.memoize(timeout=3600 )
     ##@auth_required('token')
     def get(self, request_id):
         request = ServiceRequest.query.get(request_id)
@@ -593,6 +547,8 @@ class ServiceRequestAPI(Resource):
         return request
 
     ##@auth_required('token')
+    @jwt_required()
+    @role_required([0])
     def delete(self, request_id):
         request = ServiceRequest.query.get(request_id)
         if not request:
@@ -604,6 +560,9 @@ class ServiceRequestAPI(Resource):
 
 
 class ProfessionalServiceRequestsResource(Resource):
+    @jwt_required()
+    @role_required([2,0])
+    @cache.memoize(timeout=3600)
     def get(self, professional_id):
         """
         Retrieve all service requests for a specific professional 
@@ -661,6 +620,8 @@ class ProfessionalServiceRequestsResource(Resource):
                 'message': 'An error occurred while fetching service requests',
                 'error': str(e)
             }, 500
+    @jwt_required()
+    @role_required([0,1,2])
     def put(self, request_id):
         print("inside put")
         """
@@ -710,6 +671,8 @@ class ProfessionalServiceRequestsResource(Resource):
             }, 500
 
 class ProfessionalServiceRequestsResourcePut(Resource):
+    @jwt_required()
+    @role_required([0,1,2])
     def put(self, request_id):
         print("inside put")
         """
@@ -761,6 +724,9 @@ class ProfessionalServiceRequestsResourcePut(Resource):
 
 #customer api 
 class CustomerServiceRequestsResource(Resource):
+    @jwt_required()
+    @role_required([0,1])
+    # @cach
     def post(self):
         print("inside post")
         """
@@ -833,6 +799,8 @@ class CustomerServiceRequestsResource(Resource):
 
 
 class ServiceRequestCloseResource(Resource):
+    @jwt_required()
+    @role_required([0,1,2])
     def post(self, request_id):
         """
         Close a specific service request
@@ -875,32 +843,12 @@ class ServiceRequestCloseResource(Resource):
             service_request.date_of_completion = datetime.now(timezone.utc)
             service_request.remarks = f"Request closed by customer on {datetime.now(timezone.utc)}"
             
-            # Save changes to database
-            db.session.commit()
-            
-            # # Log the closure action
-            # activity_log = ActivityLog(
-            #     user_id=current_user_id,
-            #     action='close_service_request',
-            #     details=f"Closed service request {request_id}"
-            # )
-            # db.session.add(activity_log)
-            # db.session.commit()
-            
             return {
                 'message': 'Service request closed successfully',
                 'request_id': request_id,
                 'new_status': 'closed'
             }, 200
         
-        # except SQLAlchemyError as db_error:
-        #     # Rollback database session in case of database-related errors
-        #     db.session.rollback()
-        #     current_app.logger.error(f"Database error closing service request: {db_error}")
-        #     return {
-        #         'message': 'Database error occurred while closing service request',
-        #         'error': str(db_error)
-        #     }, 500
         
         except Exception as e:
             print(e)
@@ -920,6 +868,8 @@ class ServiceRequestCloseResource(Resource):
 
 #for rating page 
 class ServiceRequestDetailsResource(Resource):
+    @jwt_required()
+    @role_required([1])
     def get(self, request_id):
         """
         Retrieve detailed information for a specific service request for rating
@@ -969,6 +919,8 @@ class ServiceRequestDetailsResource(Resource):
 
 
 class RateServiceRequestResource(Resource):
+    @jwt_required()
+    @role_required([1])
     def post(self):
         try:
             # Parse request data
@@ -1035,6 +987,9 @@ api.add_resource(RateServiceRequestResource, '/rate_service_request')
 
 #professional booking
 class ProfessionalsByServiceResource(Resource):
+    @jwt_required()
+    @role_required([0,1])
+    @cache.memoize(timeout=3600)
     def get(self, service_id):
         # Query professionals by service ID
         ser_name = Service.query.filter_by(id=service_id).first().name
@@ -1053,6 +1008,8 @@ class ProfessionalsByServiceResource(Resource):
         return professionals_list, 200
 
 class BookProfessionalResource(Resource):
+    @jwt_required()
+    @role_required([1])
     def post(self):
         # Get booking data from request
         data = request.json
@@ -1083,41 +1040,9 @@ class BookProfessionalResource(Resource):
 
 
 
-# class CustomerServiceRequestsResource(Resource):
-#     def post(self):
-#         try:
-#             data = request.get_json()
-#             customer_id = data.get('customer_id')
-#             if not customer_id:
-#                 return {'message': 'Customer ID is required', 'error': 'Bad Request'}, 400
-
-#             service_requests = (
-#                 db.session.query(
-#                     ServiceRequest.id,
-#                     ServiceRequest.service_status,
-#                     ServiceRequest.date_of_completion,
-#                     ServiceRequest.professional_id,
-#                     ServiceRequest.customer_id,
-#                 )
-#                 .filter(ServiceRequest.customer_id == customer_id)
-#                 .order_by(ServiceRequest.date_of_request.desc())
-#                 .all()
-#             )
-
-#             results = [
-#                 {
-#                     'id': request.id,
-#                     'status': request.service_status,
-#                     'date_of_completion': request.date_of_completion,
-#                 }
-#                 for request in service_requests
-#             ]
-#             return jsonify(results)
-#         except Exception as e:
-#             db.session.rollback()
-#             return {'message': 'An error occurred while fetching service requests', 'error': str(e)}, 500
-
 class UpdateServiceRequestStatusResource(Resource):
+    @jwt_required()
+    @role_required([0,1,2])
     def put(self, request_id):
         try:
             data = request.get_json()

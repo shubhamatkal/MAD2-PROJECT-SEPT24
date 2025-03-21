@@ -502,10 +502,25 @@ export default {
       
 
         async export_services_data() {
-          const res = await fetch(location.origin+'/create-csv')
+          const authToken = this.$store.state.authToken; // Assuming your token is stored in Vuex
+          const headers = {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          };
+      
+          // Request to create CSV
+          const res = await fetch(`${location.origin}/create-csv`, {
+            method: 'GET',
+            headers,
+          });
+
+          // const res = await fetch(location.origin+'/create-csv')
           const task_id = (await res.json()).task_id
           const interval = setInterval(async () => {
-          await fetch(`${location.origin}/get-csv/${task_id}`)
+          await fetch(`${location.origin}/get-csv/${task_id}`,{
+            method: 'GET',
+            headers,
+          })
           if (res.ok){
             console.log('CSV file created successfully')
             window.open(`${location.origin}/get-csv/${task_id}`)
@@ -539,7 +554,7 @@ export default {
                   method: 'PATCH',
                   headers: {
                       'Content-Type': 'application/json',
-                      'Authentication-Token': this.$store.state.auth_token,
+                      'Authorization': `Bearer ${this.$store.state.auth_token}`,
                   },
                   body: JSON.stringify({ is_approved: status })
               });
@@ -566,9 +581,9 @@ export default {
                 const response = await fetch(`/api/professionals/${id}`, {
                     method: 'PATCH',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authentication-Token': this.$store.state.auth_token,
-                    },
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${this.$store.state.auth_token}`,
+                  },
                     body: JSON.stringify({ is_approved: status })
                 });
 
@@ -588,8 +603,6 @@ export default {
                 alert('An error occurred while updating professional status');
             }
         },
-
-
         openProfessionalDetailsModal(professional) {
             this.currentProfessional = professional;
             this.showProfessionalDetailsModal = true;
@@ -599,8 +612,6 @@ export default {
             this.showProfessionalDetailsModal = false;
             this.currentProfessional = null;
         },
-
-
 
         openServiceDetailsModal(service) {
             this.currentService = service;
@@ -633,8 +644,9 @@ export default {
               const response = await fetch(`/api/professionals/${id}`, {
                   method: 'DELETE',
                   headers: {
-                      'Authentication-Token': this.$store.state.auth_token,
-                  }
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.$store.state.auth_token}`,
+                },
               });
       
               const responseData = await response.json();
@@ -654,10 +666,12 @@ export default {
 
         async fetchData(endpoint) {
             try {
+              console.log(`Bearer ${this.$store.state.auth_token}`)
                 const res = await fetch(endpoint, {
-                    headers: {
-                        'Authentication-Token': this.$store.state.auth_token,
-                    }
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.$store.state.auth_token}`,
+                },
                 });
                 return await res.json();
             } catch (error) {
@@ -670,6 +684,7 @@ export default {
             this.services = await this.fetchData('/api/services');
             this.professionals = await this.fetchData('/api/professionals');
             this.serviceRequests = await this.fetchData('/api/service_requests');
+            this.customers = await this.fetchData('/api/customers'); // Add this line
         },
         
         openAddServiceModal() {
@@ -713,9 +728,9 @@ export default {
                 const response = await fetch(url, {
                     method: method,
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authentication-Token': this.$store.state.auth_token,
-                    },
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${this.$store.state.auth_token}`,
+                  },
                     body: JSON.stringify(this.currentService)
                 });
                 
@@ -753,8 +768,9 @@ export default {
               const response = await fetch(`/api/services/${serviceId}`, {
                   method: 'DELETE',
                   headers: {
-                      'Authentication-Token': this.$store.state.auth_token,
-                  }
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.$store.state.auth_token}`,
+                },
               });
       
               const data = await response.json(); // Ensure parsing works correctly
@@ -777,21 +793,21 @@ export default {
             localStorage.removeItem('user');
             this.$router.push('/login');
         },
-        async loadAdminData() {
-          this.services = await this.fetchData('/api/services');
-          this.professionals = await this.fetchData('/api/professionals');
-          this.serviceRequests = await this.fetchData('/api/service_requests');
-          this.customers = await this.fetchData('/api/customers'); // Add this line
-      },
+      //   async loadAdminData() {
+      //     this.services = await this.fetchData('/api/services');
+      //     this.professionals = await this.fetchData('/api/professionals');
+      //     this.serviceRequests = await this.fetchData('/api/service_requests');
+      //     this.customers = await this.fetchData('/api/customers'); // Add this line
+      // },
       
       async toggleCustomerStatus(customerId, newStatus) {
           try {
               const response = await fetch(`/api/customers/${customerId}/toggle-status`, {
                   method: 'PATCH',
                   headers: {
-                      'Content-Type': 'application/json',
-                      'Authentication-Token': this.$store.state.auth_token,
-                  },
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.$store.state.auth_token}`,
+                },
                   body: JSON.stringify({ is_active: newStatus })
               });
   

@@ -171,8 +171,9 @@ export default {
 		try {
 		  const res = await fetch(endpoint, {
 			headers: {
-			  'Authentication-Token': this.$store.state.auth_token,
-			}
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${this.$store.state.auth_token}`,
+			},
 		  });
 		  return await res.json();
 		} catch (error) {
@@ -216,8 +217,8 @@ export default {
 		  const response = await fetch(`/api/customers/${customerId}/toggle-status`, {
 			method: 'PATCH',
 			headers: {
-			  'Content-Type': 'application/json',
-			  'Authentication-Token': this.$store.state.auth_token,
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${this.$store.state.auth_token}`,
 			},
 			body: JSON.stringify({ is_active: newStatus })
 		  });

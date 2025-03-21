@@ -9,9 +9,35 @@ from backend.routes import register_routes  # Import the route registration func
 from backend.celery.celery_factory import celery_init_app
 import flask_excel as excel
 
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from functools import wraps
+from datetime import datetime, timedelta
+from flask import jsonify
+
 
 
 from flask_security.datastore import SQLAlchemyUserDatastore
+
+# def role_required(allowed_roles):
+#     def decorator(f):
+#         @wraps(f)
+#         def decorated_function(*args, **kwargs):
+#             current_user = get_jwt_identity()
+#             if not current_user or current_user["role"] not in allowed_roles:
+#                 return jsonify({"message": "Access Denied!"}), 403
+#             return f(*args, **kwargs)
+#         return decorated_function
+#     return decorator
+
+# def generate_token(user):
+#     payload = {
+#         'id': user.id,
+#         'role': user.role_id,  # Adjust based on your role field
+#         'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Token expires in 1 hour
+#     }
+#     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+
+
 
 class MultiTableUserDatastore(SQLAlchemyUserDatastore):
     def __init__(self, db, *user_models):
@@ -53,6 +79,40 @@ def createApp():
     # Initialize Flask-Security with a custom datastore
     # datastore = MultiTableUserDatastore(db, Admin, Customer, Professional)
     app.security = Security(app, datastore=datastore, register_blueprint=False)
+
+    # Initialize JWT
+    app.config["JWT_SECRET_KEY"] = "shubhamatkal"  # Change this to a strong secret key
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
+    jwt = JWTManager(app)
+
+    # Somewhere in your app initialization
+    # app.config['JWT_SECRET_KEY'] = 'your-secret-key'
+    # jwt = JWTManager(app)
+
+    # Add a JWT error handler to see what's happening
+    @jwt.invalid_token_loader
+    def invalid_token_callback(error_string):
+        print(f"INVALID TOKEN ERROR: {error_string}")
+        return jsonify({
+            'message': f'Invalid token: {error_string}',
+            'error': 'invalid_token'
+        }), 401
+
+    @jwt.expired_token_loader
+    def expired_token_callback(jwt_header, jwt_payload):
+        print("EXPIRED TOKEN ERROR")
+        return jsonify({
+            'message': 'Token has expired',
+            'error': 'expired_token'
+        }), 401
+
+    @jwt.unauthorized_loader
+    def unauthorized_callback(error_string):
+        print(f"UNAUTHORIZED ERROR: {error_string}")
+        return jsonify({
+            'message': f'Missing token: {error_string}',
+            'error': 'unauthorized'
+        }), 401
 
     # Push the application context here
     app.app_context().push()

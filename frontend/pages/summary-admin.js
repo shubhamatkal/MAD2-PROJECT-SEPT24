@@ -231,7 +231,14 @@ export default {
 	methods: {
 	  fetchServiceRequests() {
 		// Fetch data from API
-		fetch('/api/service_requests')
+		fetch('/api/service_requests',
+			{
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${this.$store.state.auth_token}`,
+				},
+			}
+		)
 		  .then(response => response.json())
 		  .then(data => {
 			this.serviceRequests = data;

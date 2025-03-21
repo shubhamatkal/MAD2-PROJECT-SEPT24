@@ -80,8 +80,8 @@ export default {
 		  const response = await fetch(`/api/customer_service_requests`, {
 			method: 'POST',
 			headers: {
-			  'Authentication-Token': this.$store.state.auth_token,
-			  'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${this.$store.state.auth_token}`,
 			},
 			body: JSON.stringify({
 			  customer_id: this.$store.state.user_id
@@ -99,7 +99,10 @@ export default {
 		try {
 		  const response = await fetch(`/api/service-requests/${requestId}/update-status`, {
 			method: "PUT",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${this.$store.state.auth_token}`,
+			},
 			body: JSON.stringify({ service_status: "cancelled" })
 		  });
 		  const data = await response.json();
@@ -118,7 +121,10 @@ export default {
 		try {
 		  const response = await fetch(`/api/service-requests/${requestId}/update-status`, {
 			method: "PUT",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${this.$store.state.auth_token}`,
+			},
 			body: JSON.stringify({ service_status: "completed" })
 		  });
 		  const data = await response.json();
@@ -137,8 +143,10 @@ export default {
 		try {
 		  const response = await fetch(`/api/service-requests/${requestId}/update-status`, {
 			method: "PUT",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ service_status: "rated" })
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${this.$store.state.auth_token}`,
+			},			body: JSON.stringify({ service_status: "rated" })
 		  });
 		  const data = await response.json();
 		  if (response.ok) {
@@ -165,9 +173,9 @@ export default {
 		  const response = await fetch(`/api/service_requests/${requestId}/cancel`, {
 			method: 'POST',
 			headers: {
-			  'Authentication-Token': this.$store.state.auth_token,
-			  'Content-Type': 'application/json'
-			}
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${this.$store.state.auth_token}`,
+			},
 		  });
   
 		  if (response.ok) {
@@ -189,9 +197,9 @@ export default {
 		  const response = await fetch(`/api/service_requests/${requestId}/close`, {
 			method: 'POST',
 			headers: {
-			  'Authentication-Token': this.$store.state.auth_token,
-			  'Content-Type': 'application/json'
-			}
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${this.$store.state.auth_token}`,
+			},
 		  });
   
 		  if (response.ok) {

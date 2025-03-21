@@ -9,6 +9,7 @@ class LocalDevelopmentConfig(Config):
     SECURITY_PASSWORD_HASH = 'bcrypt'  # Use bcrypt for password hashing
     SECURITY_PASSWORD_SALT = 'shubham@123'  # Optional, bcrypt handles salting internally
     SECRET_KEY = "atkal@123"
+    
     #redis
     CACHE_TYPE = "RedisCache"
     CACHE_REDIS_PORT = 6379

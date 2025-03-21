@@ -70,7 +70,14 @@ export default {
 		  try {
 			// Fetch service requests for the current professional
 			const professionalId = this.$store.state.user_id;
-			const response = await fetch(`/api/service-requests/professional/${professionalId}`);
+			const response = await fetch(`/api/service-requests/professional/${professionalId}`,
+				{
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${this.$store.state.auth_token}`,
+					},
+				}
+			);
 			
 			if (!response.ok) {
 			  throw new Error('Failed to fetch service requests');
@@ -79,10 +86,6 @@ export default {
 			const allRequests = await response.json();
 			console.log(allRequests, 'allRequests');
 			
-			// // Filter new service requests (with status 'requested')
-			// this.newServiceRequests = allRequests.filter(
-			//   request => request.service_status === 'Requested'
-			// );
 			
 			// Filter and limit service history to last 5 entries
 			this.serviceHistory = allRequests
@@ -99,7 +102,10 @@ export default {
 			try {
 			  const response = await fetch(`/api/service-requests/${requestId}`, {
 				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${this.$store.state.auth_token}`,
+				},
 				body: JSON.stringify({ service_status: newStatus })
 			  });
 			  if (!response.ok) throw new Error('Failed to update service request status');

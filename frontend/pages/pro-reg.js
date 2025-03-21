@@ -63,44 +63,24 @@ export default {
 				this.services = servicesData; // Assign resolved data
 				console.log(this.services);
 	
-				const serviceRequestsData = await this.fetchServiceRequests();
-				this.serviceRequests = serviceRequestsData; // Assign resolved data
-				console.log(this.serviceRequests);
+				// const serviceRequestsData = await this.fetchServiceRequests();
+				// this.serviceRequests = serviceRequestsData; // Assign resolved data
+				// console.log(this.serviceRequests);
 			} catch (error) {
 				console.error("Error loading services or requests:", error);
 			}
 		},
 		async fetchServices() {
-		  console.log(this.$store.state.auth_token);
-		  try {
 			console.log('fetchServices');
-			const response = await fetch('/api/services', {
-			  headers: {
-				'Authentication-Token' : this.$store.state.auth_token,
-			  },
-			});
-			return await response.json();
-		  } catch (error) {
-			console.error("Error fetching data:", error);
-		}
-		},
+			try {
+			  const response = await fetch('/api/services'); 
+			  return await response.json();
+			} catch (error) {
+			  console.error("Error fetching data:", error);
+			}
+		  },
 
 
-
-		// async fetchServices() {
-		// 	console.log(this.$store.state.auth_token);
-		// 	try {
-		// 	  console.log('fetchServices');
-		// 	  const response = await fetch('/api/services', {
-		// 		headers: {
-		// 		  'Authentication-Token' : this.$store.state.auth_token,
-		// 		},
-		// 	  });
-		// 	  return await response.json();
-		// 	} catch (error) {
-		// 	  console.error("Error fetching data:", error);
-		//   }
-		//   },
 	  handleFileUpload(event) {
 		this.document = event.target.files[0];
 	  },
@@ -146,11 +126,6 @@ export default {
 		this.loadServicesAndRequests();
 
 
-	// //   this.fetchServices();
-	//   const servicesData = this.fetchServices();
-	//   this.services = servicesData; // Assign resolved data
-	//   console.log(this.services);
-	// //   console.log(this.services);
 	}
   };
   

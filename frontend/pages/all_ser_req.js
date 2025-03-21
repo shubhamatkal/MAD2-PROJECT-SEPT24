@@ -82,7 +82,7 @@ export default {
 		try {
 		  const res = await fetch(endpoint, {
 			headers: {
-			  'Authentication-Token': this.$store.state.auth_token,
+				'Authorization': `Bearer ${this.$store.state.auth_token}`,
 			},
 		  });
 		  return await res.json();

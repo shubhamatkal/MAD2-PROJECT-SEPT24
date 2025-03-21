@@ -182,7 +182,14 @@ export default {
 	methods: {
 	  async fetchProfessionals() {
 		try {
-		  const response = await fetch(`/api/professionals/service/${this.serviceId}`);
+		  const response = await fetch(`/api/professionals/service/${this.serviceId}`,
+			{
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${this.$store.state.auth_token}`,
+				},
+			}
+		  );
 		  this.professionals = await response.json();
 		  console.log('Professionals:', this.professionals);
 		} catch (error) {
@@ -196,7 +203,8 @@ export default {
 		  const response = await fetch('/api/book', {
 			method: 'POST',
 			headers: {
-			  'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${this.$store.state.auth_token}`,
 			},
 			body: JSON.stringify({
 			  professional_id: professionalId,

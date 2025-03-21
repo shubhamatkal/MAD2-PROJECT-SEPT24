@@ -5,7 +5,8 @@ const store = new Vuex.Store({
 		role : null,
 		loggedIn : false,
 		name : null,
-		user_id : null
+		user_id : null,
+        email : null,
     },
     mutations : {
         // functions that change state
@@ -18,6 +19,9 @@ const store = new Vuex.Store({
                 state.loggedIn = true;
 				state.name = user.fullname;
                 state.user_id = user.id;
+                state.email = user.email;
+                localStorage.setItem('user', JSON.stringify(user));  // Store in local storage
+                console.log('set user in state')
              }
             } catch {
                 console.warn('not logged in')

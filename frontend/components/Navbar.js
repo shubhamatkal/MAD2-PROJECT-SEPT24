@@ -29,10 +29,12 @@ export default {
     },
     methods: {
       logout() {
+        console.log(this.$store.state.auth_token, "this is before.$store.state.user");
         // Clear user data from the store and local storage (if applicable)
         this.$store.commit('logout'); // Assuming you have a mutation for logout
         localStorage.removeItem('auth_token');
         this.$router.push('/login'); // Redirect to login page
+        console.log(this.$store.state.auth_token, "this.$store.state.user");
       }
     }
   }

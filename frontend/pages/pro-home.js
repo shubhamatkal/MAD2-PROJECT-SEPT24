@@ -110,7 +110,14 @@ export default {
 	  async fetchServiceRequests() {
 		try {
 		  const professionalId = this.$store.state.user_id;
-		  const response = await fetch(`/api/service-requests/professional/${professionalId}`);
+		  const response = await fetch(`/api/service-requests/professional/${professionalId}`,
+			{
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${this.$store.state.auth_token}`,
+				},
+			}
+		  );
 		  if (!response.ok) throw new Error('Failed to fetch service requests');
 		  const allRequests = await response.json();
 		  this.newServiceRequests = allRequests.filter(request => request.service_status === 'requested');
@@ -125,8 +132,10 @@ export default {
 		try {
 		  const response = await fetch(`/api/service-requests/${requestId}`, {
 			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ service_status: newStatus })
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${this.$store.state.auth_token}`,
+			},			body: JSON.stringify({ service_status: newStatus })
 		  });
 		  if (!response.ok) throw new Error('Failed to update service request status');
 		  this.fetchServiceRequests();
