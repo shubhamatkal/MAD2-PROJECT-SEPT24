@@ -85,6 +85,9 @@ class CustomerToggleStatusResource(Resource):
         
         try:
             db.session.commit()
+            # Clear all relevant caches
+            cache.delete("customers_list_all")  # Remove cached customer list
+
             return {
                 'id': customer.id,
                 'email': customer.email,
@@ -124,6 +127,9 @@ class BlockUnblockProfessional(Resource):
             if new_status not in [1, 2]:
                 return {"message": "Invalid status. Must be 1 (Approved) or 2 (Blocked)"}, 400
                 
+            # Store the original service name before update (needed for cache invalidation)
+            service_name = professional.service_name
+
             # Update the professional's status
             P = Professional.query.filter_by(id=professional_id).first()
             print(P)
@@ -133,6 +139,19 @@ class BlockUnblockProfessional(Resource):
             print(P.__dict__)  # Debugging
             try:
                 db.session.commit()
+                                # **Invalidate Cache for Affected Service**
+                service = Service.query.filter_by(name=service_name).first()
+                if service:
+                    service_id = service.id
+                    print(f"Invalidating cache for service_id: {service_id}")
+                    cache.delete_memoized(ProfessionalsByServiceResource.get, ProfessionalsByServiceResource, service_id)
+                #professionalapi get 
+                professional_id = professional.id
+                if professional_id:
+                    cache.delete_memoized(ProfessionalAPI.get, ProfessionalAPI, professional_id)
+                #professional list api
+                cache.delete("professionals_list_all")
+
             except Exception as e:
                 db.session.rollback()
                 import traceback
@@ -191,6 +210,11 @@ class ServiceRequestRate(Resource):
 
             db.session.commit()
 
+            #ServiceRequestAPI
+            cache.delete_memoized(ServiceRequestAPI.get, ServiceRequestAPI, request_id)
+            cache.delete("service_requests_all_v2")
+            cache.delete_memoized(ProfessionalServiceRequestsResource.get, ProfessionalServiceRequestsResource, service_request.professional_id)
+
             return {
                 'message': 'Service request rated successfully',
                 'service_request': {
@@ -248,6 +272,12 @@ class ServiceRequestStatusUpdate(Resource):
 
             db.session.commit()
 
+            #ServiceRequestAPI
+            cache.delete_memoized(ServiceRequestAPI.get, ServiceRequestAPI, request_id)
+            cache.delete("service_requests_all_v2")
+            cache.delete_memoized(ProfessionalServiceRequestsResource.get, ProfessionalServiceRequestsResource, service_request.professional_id)
+
+
             # Response
             return {
                 'message': 'Service request updated successfully',
@@ -280,6 +310,9 @@ class ServiceAPI(Resource):
             service.description = data['description']
             
             db.session.commit()
+
+            # Invalidate cache for updated service
+            cache.delete("all_services_list")
             
             return {
                 "id": service.id,
@@ -309,6 +342,7 @@ class ServiceAPI(Resource):
         try:
             db.session.delete(service)
             db.session.commit()
+            cache.delete("all_services_list")
             response = jsonify({"message": "Service deleted successfully"})
             return make_response(response, 200)
 
@@ -347,6 +381,7 @@ class ServiceListAPI(Resource):
             # Add to database
             db.session.add(new_service)
             db.session.commit()
+            cache.delete("all_services_list")
             
             # Return the newly created service
             return {
@@ -376,7 +411,7 @@ class ProfessionalListAPI(Resource):
     @jwt_required()
     @role_required([0])
     @marshal_with(professionals_fields)
-    # @cache.cached(timeout = 3600, key_prefix = "professionals_list_all")
+    @cache.cached(timeout = 3600, key_prefix = "professionals_list_all")
     def get(self):
         try :
             professionals = Professional.query.all()
@@ -407,6 +442,11 @@ class ProfessionalListAPI(Resource):
         )
         db.session.add(professional)
         db.session.commit()
+        #remove professional cache
+        service_id = Service.query.filter_by(name=professional.service_name).first().id
+        cache.delete_memoized(ProfessionalsByServiceResource.get, ProfessionalsByServiceResource, service_id)
+        cache.delete("professionals_list_all")
+
         return {"message": "Professional created"}
 
 # Service Requests List API
@@ -457,6 +497,8 @@ class ServiceRequestListAPI(Resource):
         )
         db.session.add(service_request)
         db.session.commit()
+        cache.delete("service_requests_all_v2")
+        cache.delete_memoized(ProfessionalServiceRequestsResource.get, ProfessionalServiceRequestsResource, data['professional_id'])
         return {"message": "Service request created"}
 
 
@@ -492,6 +534,9 @@ class ProfessionalAPI(Resource):
             
             # Commit the changes
             db.session.commit()
+            cache.delete("professionals_list_all")
+            service_id = Service.query.filter_by(name=professional.service_name).first().id
+            cache.delete_memoized(ProfessionalsByServiceResource.get, ProfessionalsByServiceResource, service_id)
             
             return {"message": "Professional status updated successfully"}, 200
         
@@ -526,6 +571,9 @@ class ProfessionalAPI(Resource):
                 # Now delete the professional
                 db.session.delete(professional)
                 db.session.commit()
+                cache.delete("professionals_list_all")
+                service_id = Service.query.filter_by(name=professional.service_name).first().id
+                cache.delete_memoized(ProfessionalsByServiceResource.get, ProfessionalsByServiceResource, service_id)
 
                 return make_response(jsonify({"message": "Professional deleted successfully"}), 200)
             except Exception as e:
@@ -551,11 +599,15 @@ class ServiceRequestAPI(Resource):
     @role_required([0])
     def delete(self, request_id):
         request = ServiceRequest.query.get(request_id)
+        professional_id = request.professional_id
         if not request:
             return {"message": "Service request not found"}, 404
 
         db.session.delete(request)
         db.session.commit()
+        cache.delete("service_requests_all_v2")
+        cache.delete_memoized(ProfessionalServiceRequestsResource.get, ProfessionalServiceRequestsResource, professional_id)
+
         return {"message": "Service request deleted"}
 
 
@@ -633,6 +685,8 @@ class ProfessionalServiceRequestsResource(Resource):
         try:
             # Get the service request from the database
             service_request = ServiceRequest.query.get_or_404(request_id)
+            professional_id = service_request.professional_id
+
             
             # Get data from the request
             data = request.get_json()
@@ -651,6 +705,8 @@ class ProfessionalServiceRequestsResource(Resource):
             
             # Commit changes
             db.session.commit()
+            cache.delete("service_requests_all_v2")
+            cache.delete_memoized(ProfessionalServiceRequestsResource.get, ProfessionalServiceRequestsResource, professional_id)
             
             # Prepare response
             return {
@@ -684,6 +740,7 @@ class ProfessionalServiceRequestsResourcePut(Resource):
         try:
             # Get the service request from the database
             service_request = ServiceRequest.query.get_or_404(request_id)
+            professional_id = service_request.professional_id
             
             # Get data from the request
             data = request.get_json()
@@ -702,6 +759,8 @@ class ProfessionalServiceRequestsResourcePut(Resource):
             
             # Commit changes
             db.session.commit()
+            cache.delete("service_requests_all_v2")
+            cache.delete_memoized(ProfessionalServiceRequestsResource.get, ProfessionalServiceRequestsResource, professional_id)
             
             # Prepare response
             return {
@@ -842,7 +901,14 @@ class ServiceRequestCloseResource(Resource):
             print("done till this also")
             service_request.date_of_completion = datetime.now(timezone.utc)
             service_request.remarks = f"Request closed by customer on {datetime.now(timezone.utc)}"
+            db.session.commit()
+            # Invalidate cache for updated service request
+            cache.delete_memoized(ServiceRequestAPI.get, ServiceRequestAPI, request_id)
+            cache.delete("service_requests_all_v2")
+            cache.delete_memoized(ProfessionalServiceRequestsResource.get, ProfessionalServiceRequestsResource, service_request.professional_id)
             
+
+
             return {
                 'message': 'Service request closed successfully',
                 'request_id': request_id,
@@ -962,6 +1028,10 @@ class RateServiceRequestResource(Resource):
             
             # Commit to database
             db.session.commit()
+            cache.delete_memoized(ServiceRequestAPI.get, ServiceRequestAPI, data['request_id'])
+            cache.delete("service_requests_all_v2")
+            cache.delete_memoized(ProfessionalServiceRequestsResource.get, ProfessionalServiceRequestsResource, service_request.professional_id)
+            
             
             return {
                 'message': 'Service request rated successfully'
@@ -975,14 +1045,6 @@ class RateServiceRequestResource(Resource):
                 'message': 'An error occurred while rating the service request',
                 'error': str(e)
             }, 500
-
-
-# Add the new resources to the API
-api.add_resource(ServiceRequestDetailsResource, '/service_request_details/<int:request_id>')
-api.add_resource(RateServiceRequestResource, '/rate_service_request')
-
-#======
-
 
 
 #professional booking
@@ -1059,6 +1121,10 @@ class UpdateServiceRequestStatusResource(Resource):
                 service_request.date_of_completion = db.func.current_timestamp()
 
             db.session.commit()
+            # Invalidate cache for updated service request
+            cache.delete_memoized(ServiceRequestAPI.get, ServiceRequestAPI, request_id)
+            cache.delete("service_requests_all_v2")
+            cache.delete_memoized(ProfessionalServiceRequestsResource.get, ProfessionalServiceRequestsResource, service_request.professional_id)
             return {'message': 'Service request updated successfully'}
         except Exception as e:
             db.session.rollback()
@@ -1067,13 +1133,9 @@ class UpdateServiceRequestStatusResource(Resource):
 
 # api.add_resource(CustomerServiceRequestsResource, '/customer_service_requests')
 api.add_resource(UpdateServiceRequestStatusResource, '/service-requests/<int:request_id>')
-
 # Add these resources to your API
 api.add_resource(ProfessionalsByServiceResource, '/professionals/service/<int:service_id>')
 api.add_resource(BookProfessionalResource, '/book')
-
-
-
 # Add the new resources to the API
 api.add_resource(ProfessionalAPI, '/professionals/<int:professional_id>')
 api.add_resource(ProfessionalListAPI, '/professionals')
@@ -1090,13 +1152,14 @@ api.add_resource(CustomerServiceRequestsResource, '/customer_service_requests')
 #close service request
 api.add_resource(ServiceRequestCloseResource, '/service_requests/<int:request_id>/close')
 api.add_resource(ServiceRequestStatusUpdate, '/service-requests/<int:request_id>/update-status')
-
 # Add resource to API
 api.add_resource(ServiceRequestRate, '/service-requests/<int:request_id>/rate')
-
 #customer
 api.add_resource(CustomerListResource, '/customers')
 api.add_resource(CustomerToggleStatusResource, '/customers/<int:customer_id>/toggle-status')
-
 # Add this line where you set up your API routes
 api.add_resource(BlockUnblockProfessional, '/blockprofessional/<int:professional_id>')
+
+# Add the new resources to the API
+api.add_resource(ServiceRequestDetailsResource, '/service_request_details/<int:request_id>')
+api.add_resource(RateServiceRequestResource, '/rate_service_request')
