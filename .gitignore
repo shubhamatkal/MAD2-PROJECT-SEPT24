@@ -12,4 +12,4 @@ __pycache__
 crediantial-notes.txt
 .qodo
 
-./backend/celery/user-downloads/
+./backend/celery/db-backups/
