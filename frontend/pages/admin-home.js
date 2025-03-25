@@ -4,7 +4,7 @@ export default {
         <h1>Admin Home</h1>
         <h2>{{ $store.state.name }}</h2>
         <button class='btn btn-primary' @click="logout">Logout</button>
-        <button @click="export_services_data">Export Services Data</button>
+        <button @click="export_services_data">Backup DB</button>
         
         <h2>Services 
             <button @click="openAddServiceModal" class="btn btn-success ml-2">Add Service</button>
@@ -509,7 +509,7 @@ export default {
           };
       
           // Request to create CSV
-          const res = await fetch(`${location.origin}/create-csv`, {
+          const res = await fetch(`${location.origin}/backup_db`, {
             method: 'GET',
             headers,
           });

@@ -1,0 +1,23 @@
+id,time_required,description,name,price,source_table,user_id,password,service_name,document_path,pin_code,phone,fs_uniquifier,full_name,experience,address,role_id,is_approved,email,is_active,professional_id,date_of_completion,remarks,rating,rated_at,service_id,customer_id,date_of_request,service_status,rating_remarks
+1,3,repairs your electric devices,Electrician,500.0,service,,,,,,,,,,,,,,,,,,,,,,,,
+2,1,repairs leaking taps ,Plumber,200.0,service,,,,,,,,,,,,,,,,,,,,,,,,
+3,2,Does Servicing of the AC,AC Service,500.0,service,,,,,,,,,,,,,,,,,,,,,,,,
+4,1,washes the car,Car washing,200.0,service,,,,,,,,,,,,,,,,,,,,,,,,
+1,,,,,professional,shubham@pro.com,$2b$12$SbPjx9YJzKSX0IiOeXYM3OGu29qKXgHIq/khUrBQ0llDssQg5AEm6,Plumber,static/uploads/shubhampro.com.pdf,431203,7219357419.0,fd0e8e74-221c-44b1-89de-02d5e4165955,ShubhamPro Atkal,3.0,shevgal,2.0,1.0,,,,,,,,,,,,
+2,,,,,professional,dhoni@pro.com,$2b$12$iZDXOOqKRs7Pil9ahqyPmu4iv23T7qn9Yi3ToVwtdFjzu8j62L1gO,Plumber,static/uploads/dhonipro.com.pdf,222222,,d2cc7d44-977e-45fe-9afd-483c30e272c6,MS Dhoni,5.0,Chennai,2.0,1.0,,,,,,,,,,,,
+3,,,,,professional,shyam@pro.com,$2b$12$l.pM7N/6WpHK/Jp.WjJffu1SM3aQTMbJhYZ.bazIY6amPnnTk0n1u,AC Service,static/uploads/shyampro.com.pdf,431203,,471fd25a-b386-400a-ac2b-de2fcee4d70a,Shyam Atkal,32.0,Shevgal,2.0,1.0,,,,,,,,,,,,
+1,,,,,customer,,$2b$12$wxD5RwQ858nzFft5W/MA1OnC66UW3Vup5WJ9/b4FWnByoZn2wWy4a,,,431203,,fbdad7cf-890a-43eb-a5ed-025345d8eda2,Shubham Atkal,,shevgal,1.0,,shubham@customer.com,True,,,,,,,,,,
+2,,,,,customer,,$2b$12$hF9hX6ufF7qVulCVs6JIbu.0SmhsEdBadgu7.soEyxioAFhNsf4HK,,,333333,,60c7d431-ddcd-4086-a1e4-a50192fe92aa,Ravindra Jadeja,,Chennai Super Kings,1.0,,ravindra@customer.com,True,,,,,,,,,,
+1,,,,,service_request,,,,,,,,,,,,,,,1.0,2024-12-02 16:51:58.885645,Request closed by customer on 2024-12-02 16:51:58.885666+00:00,,,1.0,1.0,2024-12-02 14:30:45.000000,closed,
+2,,,,,service_request,,,,,,,,,,,,,,,1.0,,,4.0,2024-12-02 18:02:27.756242,2.0,1.0,2024-12-02 15:30:10.000000,rated,ok nice
+3,,,,,service_request,,,,,,,,,,,,,,,1.0,,,,,2.0,1.0,2024-12-03 00:12:26.967385,requested,
+4,,,,,service_request,,,,,,,,,,,,,,,3.0,2025-02-18 16:32:38.000000,,,,3.0,1.0,2025-02-15 18:45:16.062175,closed,
+5,,,,,service_request,,,,,,,,,,,,,,,1.0,,,,,2.0,1.0,2025-02-15 18:49:18.907510,requested,
+6,,,,,service_request,,,,,,,,,,,,,,,3.0,,,,,3.0,1.0,2025-02-15 20:42:34.562761,requested,
+7,,,,,service_request,,,,,,,,,,,,,,,1.0,,,,,2.0,1.0,2025-02-15 21:18:39.897593,requested,
+8,,,,,service_request,,,,,,,,,,,,,,,3.0,2025-02-18 16:55:22.517044,,4.0,2025-02-18 16:55:22.517027,3.0,2.0,2025-02-15 21:23:56.817988,rated,ok very good 
+9,,,,,service_request,,,,,,,,,,,,,,,3.0,2025-02-17 14:12:32.753831,,,,3.0,2.0,2025-02-15 22:17:35.700458,cancelled,
+10,,,,,service_request,,,,,,,,,,,,,,,1.0,,,,,2.0,2.0,2025-02-17 17:39:10.675586,requested,
+11,,,,,service_request,,,,,,,,,,,,,,,3.0,,,,,3.0,2.0,2025-02-17 23:00:57.767233,assigned,
+12,,,,,service_request,,,,,,,,,,,,,,,3.0,,,,,3.0,2.0,2025-02-18 22:16:19.104766,rejected,
+13,,,,,service_request,,,,,,,,,,,,,,,1.0,,,,,2.0,2.0,2025-03-18 19:08:28.876006,requested,

@@ -6,7 +6,7 @@ from backend.models import db, Customer, Professional
 from werkzeug.utils import secure_filename
 from backend.auth_utils import custom_verify_password, find_user, role_required, generate_token
 from datetime import datetime
-from backend.celery.tasks import add, create_csv
+from backend.celery.tasks import add, backup_database_tables
 from celery.result import AsyncResult
 import uuid
 
@@ -65,9 +65,9 @@ def register_routes(app):
 
     @jwt_required()
     @role_required(0)
-    @app.get('/create-csv')
-    def createCSV():
-        task = create_csv.delay()
+    @app.get('/backup_db')
+    def backupDB():
+        task = backup_database_tables.delay()
         return {'task_id': task.id}, 200
 
     @jwt_required()
@@ -80,7 +80,7 @@ def register_routes(app):
         print(id)
         print(result.ready())
         if result.ready():
-            return send_file(f'./backend/celery/user-downloads/{result.result}')  # Send file as attachment
+            return send_file(f'./backend/celery/db-backups/{result.result}')  # Send file as attachment
         else:
             return jsonify({'status': 'processing'})
     
