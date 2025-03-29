@@ -42,39 +42,67 @@ export default {
 	  }
 	},
 	template: `
-	  <div class="container text-center mt-5">
-		<!-- Big Title -->
-		<h1 class="display-4 fw-bold mb-3">A2Z Household Services</h1>
-		<p class="lead text-muted mb-4">
-		  Your one-stop solution for all household services. Register today to enjoy seamless services from trusted professionals.
+	<div class="container my-5">
+	<!-- Hero Section -->
+	<div class="row justify-content-center text-center">
+	  <div class="col-lg-8">
+		<h1 class="display-3 fw-bold mb-3">A2Z Household Services</h1>
+		<p class="lead mb-4">
+		  Your one-stop solution for all household services. From plumbing to cleaning, electrical work to gardening - we've got you covered.
 		</p>
-		
-		<!-- Register Today Button -->
-		<div class="d-grid gap-3 col-6 mx-auto">
-		  <router-link to="/register-customer" class="btn btn-primary btn-lg fw-bold">
-			Register Today
-		  </router-link>
-		  
-		  <!-- Register as Professional Button -->
-		  <router-link to="/professional-register" class="btn btn-secondary fw-semibold">
-			Register as Professional
-		  </router-link>
-		</div>
-		
-		<!-- Already Registered -> Login Button -->
-		<div class="mt-4">
-		  <router-link to="/login" class="btn btn-link text-decoration-none fw-bold">
-			Already registered? <span class="text-primary">Login</span>
-		  </router-link>
-		</div>
-		
-		<!-- Contact Us Section -->
-		<footer class="mt-5">
-		  <button @click="contactUs" class="btn btn-outline-dark btn-sm">
-			Contact Us
-		  </button>
-		</footer>
+		<p class="text-muted mb-5">
+		  Join thousands of satisfied customers who trust our vetted professionals for quality service delivery.
+		</p>
 	  </div>
+	</div>
+	
+
+	
+	<!-- CTA Buttons -->
+	<div class="row justify-content-center mb-4">
+	  <div class="col-md-8 col-lg-6">
+		<div class="card shadow border-0">
+		  <div class="card-body p-4 text-center">
+			<h4 class="mb-4">Ready to get started?</h4>
+			<div class="d-grid gap-3 mb-3">
+			  <router-link to="/register-customer" class="btn btn-primary btn-lg fw-bold py-3">
+				<i class="bi bi-person-plus me-2"></i>Register as Customer
+			  </router-link>
+			  
+			  <router-link to="/professional-register" class="btn btn-outline-primary fw-semibold py-2">
+				<i class="bi bi-tools me-2"></i>Join as Professional
+			  </router-link>
+			</div>
+			
+			<router-link to="/login" class="btn btn-link text-decoration-none fw-bold">
+			  Already registered? <span class="text-primary">Login here</span>
+			</router-link>
+		  </div>
+		</div>
+	  </div>
+	</div>
+	
+	<!-- Trust Badges -->
+	<div class="row justify-content-center text-center mb-5">
+	  <div class="col-lg-8">
+		<div class="d-flex justify-content-center gap-4 flex-wrap">
+		  <div class="badge bg-light text-dark px-3 py-2 mb-2">
+			<i class="bi bi-shield-check text-success me-1"></i> Verified Professionals
+		  </div>
+		  <div class="badge bg-light text-dark px-3 py-2 mb-2">
+			<i class="bi bi-clock text-primary me-1"></i> 24/7 Support
+		  </div>
+		  <div class="badge bg-light text-dark px-3 py-2 mb-2">
+			<i class="bi bi-star-fill text-warning me-1"></i> 4.8/5 Rating
+		  </div>
+		  <div class="badge bg-light text-dark px-3 py-2 mb-2">
+			<i class="bi bi-currency-dollar text-success me-1"></i> Best Prices
+		  </div>
+		</div>
+	  </div>
+	</div>
+	
+  </div>
 	`,
 	methods: {
 	  contactUs() {

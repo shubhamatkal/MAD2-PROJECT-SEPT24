@@ -1,12 +1,14 @@
 export default {
     template: `
     <div>
-        <h1>Admin Home</h1>
-        <h2>{{ $store.state.name }}</h2>
-        <button class='btn btn-primary' @click="logout">Logout</button>
-        <button @click="export_services_data">Backup DB</button>
+    <h2>Welcome {{ $store.state.name }}</h2>
+
+    <!-- Styled Button with Bootstrap -->
+    <button class="btn btn-primary mt-3" @click="export_services_data">
+        Backup DB
+    </button>
         
-        <h2>Services 
+        <h2 class="mt-4">Services 
             <button @click="openAddServiceModal" class="btn btn-success ml-2">Add Service</button>
         </h2>
         <div class="d-flex justify-content-end mb-3">

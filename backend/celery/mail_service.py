@@ -34,10 +34,6 @@ def monthly_report_customer_():
     """
     # # Get the start and end of the previous month
     today = datetime.now()
-    # first_day_of_current_month = today.replace(day=1)
-    # last_day_of_previous_month = first_day_of_current_month - timedelta(days=1)
-    # first_day_of_previous_month = last_day_of_previous_month.replace(day=1)
-
     # First day of the "previous month" (i.e., this month's first day)
     first_day_of_previous_month = today.replace(day=1)
     # Last day of the "previous month" (i.e., today)
@@ -121,11 +117,6 @@ def send_professional_daily_task_notifications_():
         emails_sent = 0
 
         for professional in professionals:
-            # # Filter service requests with optimal performance
-            # service_requests = [
-            #     req for req in professional.service_requests 
-            #     if req.service_status in ['Requested', 'Assigned', 'Pending']
-            # ]
 
             # Retrieve service requests for this professional with specific statuses
             service_requests = ServiceRequest.query.filter(

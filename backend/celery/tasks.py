@@ -7,11 +7,6 @@ import os
 from datetime import datetime
 import pandas as pd
 
-@shared_task(ignore_result=False)
-def add(x, y):
-	time.sleep(10)
-	return x + y
-
 
 @shared_task(bind=True, ignore_result=False)
 def backup_database_tables(self):

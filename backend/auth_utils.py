@@ -64,27 +64,6 @@ def generate_token(user):
 
 
 
-# #jwt
-# def jwt_required(f):
-#     @wraps(f)
-#     def decorated_function(*args, **kwargs):
-#         token = request.headers.get("Authorization")
-
-#         if not token:
-#             return jsonify({"message": "Token is missing!"}), 401
-
-#         try:
-#             token = token.split(" ")[1] if " " in token else token
-#             decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-#             request.user = decoded  # Attach user data to request
-#         except jwt.ExpiredSignatureError:
-#             return jsonify({"message": "Token has expired!"}), 401
-#         except jwt.InvalidTokenError:
-#             return jsonify({"message": "Invalid token!"}), 401
-
-#         return f(*args, **kwargs)
-
-#     return decorated_function
 
 # Custom datastore to search across multiple tables
 class MultiTableUserDatastore(SQLAlchemyUserDatastore):
@@ -136,15 +115,3 @@ def find_user(email):
 
 
 
-
-# def role_required(*roles):
-#     def decorator(f):
-#         print("inside decorator")
-#         @wraps(f)
-#         @auth_required('token')
-#         def decorated_function(*args, **kwargs):
-#             if current_user.role_id not in roles:
-#                 abort(403, description="Access forbidden: You do not have the necessary permissions.")
-#             return f(*args, **kwargs)
-#         return decorated_function
-#     return decorator### List APIs (Fetching all records)

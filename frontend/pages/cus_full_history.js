@@ -168,29 +168,29 @@ export default {
   
   
 
-	  async cCancelServiceRequest(requestId) {
-		try {
-		  const response = await fetch(`/api/service_requests/${requestId}/cancel`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${this.$store.state.auth_token}`,
-			},
-		  });
+	//   async cCancelServiceRequest(requestId) {
+	// 	try {
+	// 	  const response = await fetch(`/api/service_requests/${requestId}/cancel`, {
+	// 		method: 'POST',
+	// 		headers: {
+	// 			'Content-Type': 'application/json',
+	// 			'Authorization': `Bearer ${this.$store.state.auth_token}`,
+	// 		},
+	// 	  });
   
-		  if (response.ok) {
-			this.serviceRequests = this.serviceRequests.map(request =>
-			  request.id === requestId ? { ...request, status: 'Cancelled' } : request
-			);
-			this.$toast.success("Service request cancelled successfully");
-		  } else {
-			this.$toast.error("Failed to cancel service request");
-		  }
-		} catch (error) {
-		  console.error("Error cancelling service request:", error);
-		  this.$toast.error("Unable to cancel service request");
-		}
-	  },
+	// 	  if (response.ok) {
+	// 		this.serviceRequests = this.serviceRequests.map(request =>
+	// 		  request.id === requestId ? { ...request, status: 'Cancelled' } : request
+	// 		);
+	// 		this.$toast.success("Service request cancelled successfully");
+	// 	  } else {
+	// 		this.$toast.error("Failed to cancel service request");
+	// 	  }
+	// 	} catch (error) {
+	// 	  console.error("Error cancelling service request:", error);
+	// 	  this.$toast.error("Unable to cancel service request");
+	// 	}
+	//   },
   
 	  async closeServiceRequest(requestId) {
 		try {

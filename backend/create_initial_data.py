@@ -10,7 +10,7 @@ with app.app_context():
 
     # Create roles if they don't exist
     roles = [
-        {"id": 0, "name": "admin", "description": "Administrator with all privileges"},
+        {"id": 0, "name": "admin", "description": "Administrator"},
         {"id": 1, "name": "customer", "description": "Regular customer"},
         {"id": 2, "name": "professional", "description": "Service professional"},
     ]
