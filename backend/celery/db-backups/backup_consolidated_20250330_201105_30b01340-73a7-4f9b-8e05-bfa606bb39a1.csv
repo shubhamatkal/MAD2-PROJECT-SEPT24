@@ -1,0 +1,7 @@
+time_required,id,price,description,name,source_table,password,service_name,user_id,document_path,pin_code,phone,is_approved,full_name,experience,address,role_id,fs_uniquifier,email,is_active,service_id,customer_id,date_of_request,service_status,rating,rated_at,professional_id,date_of_completion,remarks,rating_remarks
+2,1,500.0,cleaning of the ac,AC service,service,,,,,,,,,,,,,,,,,,,,,,,,
+,1,,,,professional,$2b$12$tjqp/DQDz4faIZtP3gvpB.4GT0dhDv0.BWEJh.xG7iDyi3lcYj9yO,AC service,shyam@pro.a2z.com,static/uploads/shyampro.a2z.com.pdf,123123,,1.0,Shyam Atkal,2.0,Shevgal MH,2.0,119ff24e-5ec2-4ef0-b249-5d87ffd222b6,,,,,,,,,,,,
+,2,,,,professional,$2b$12$i.qxW50Hs5HRxXOL4DsYLu1c63uNrS9l.ysWzb99QS0a/Mq9Bo4yK,AC service,john@pro.a2z.com,static/uploads/johnpro.a2z.com.pdf,676323,,1.0,John Doe,22.0,Shevgal MH,2.0,364030e5-8568-4510-8716-66794d38ad73,,,,,,,,,,,,
+,1,,,,customer,$2b$12$AcFMB14GHZC82gT5irzXjeBeS5vET9cpBPRJN7JT0IuwlMVTa.UsG,,,,111000,,,Shivam Pandey,,"mumbai, mh",1.0,694d4cfd-f82e-4843-9591-a0b43e9a5a86,shivam@cus.a2z.com,True,,,,,,,,,,
+,1,,,,service_request,,,,,,,,,,,,,,,1.0,1.0,2025-03-30 12:07:09.778344,rejected,,,1.0,,,
+,2,,,,service_request,,,,,,,,,,,,,,,1.0,1.0,2025-03-30 12:14:01.556930,rated,4.0,,1.0,2025-03-30 06:45:35.023881,,

@@ -43,25 +43,7 @@ export default {
 		  </div>
 		  
 		  <!-- Sorting Controls -->
-		  <div class="flex items-center">
-			<span class="text-sm font-medium text-gray-700 mr-2">Sort by:</span>
-			<button 
-			  @click="setSorting('rating')" 
-			  class="px-3 py-1 mr-2 text-sm rounded-full"
-			  :class="sortBy === 'rating' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
-			>
-			  Rating 
-			  <span v-if="sortBy === 'rating'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
-			</button>
-			<button 
-			  @click="setSorting('price')" 
-			  class="px-3 py-1 mr-2 text-sm rounded-full"
-			  :class="sortBy === 'price' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
-			>
-			  Price 
-			  <span v-if="sortBy === 'price'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
-			</button>
-		  </div>
+
 		</div>
 		
 		<!-- Professionals Table -->
