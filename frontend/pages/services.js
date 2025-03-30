@@ -71,8 +71,7 @@ export default {
 		  <tr>
 			<th>ID</th>
 			<th>Professional Name</th>
-			<th>Base Price</th>
-			<th>Avg Rating</th>
+
 			<th>Pin Code</th>
 			<th>Address</th>
 			<th>Actions</th>
@@ -82,15 +81,7 @@ export default {
 		  <tr v-for="professional in filteredProfessionals" :key="professional.id">
 			<td>{{ professional.id }}</td>
 			<td>{{ professional.name }}</td>
-			<td>{{ formatPrice(professional.base_price) }}</td>
-			<td>
-			  <span>{{ professional.avg_rating }}</span>
-			  <span class="text-yellow-400">
-				<span v-for="i in 5" :key="i">
-				  {{ i <= Math.round(professional.avg_rating) ? '★' : '☆' }}
-				</span>
-			  </span>
-			</td>
+
 			<td>{{ professional.pin_code }}</td>
 			<td>{{ professional.address }}</td>
 			<td>

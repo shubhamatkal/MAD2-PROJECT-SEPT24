@@ -541,15 +541,6 @@ export default {
         }
     },
 
-        getStatusText(isApproved) {
-            switch(isApproved) {
-                case 0: return 'Pending';
-                case 1: return 'Approved';
-                case -1: return 'Rejected';
-                default: return 'Unknown';
-            }
-        },
-
         async blockUnblockProfessional(id, status) {
           try {
               const response = await fetch(`/api/blockprofessional/${id}`, {

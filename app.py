@@ -43,7 +43,7 @@ datastore = MultiTableUserDatastore(
 
 
 def createApp():
-    app = Flask(__name__, template_folder='frontend', static_folder='frontend', static_url_path='/static')
+    app = Flask(__name__, template_folder='frontend', static_folder='frontend')
     app.config.from_object(LocalDevelopmentConfig)
 
     # Ensure the upload folder exists
