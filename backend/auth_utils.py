@@ -18,7 +18,14 @@ from flask_jwt_extended import get_jwt_identity
 def role_required(allowed_roles):
     def decorator(f):
         @wraps(f)
-        def decorated_function(*args, **kwargs):            
+        def decorated_function(*args, **kwargs):
+            # Convert allowed_roles to a list if it's not already a collection type
+            roles = allowed_roles
+            if not isinstance(roles, (list, set, tuple)):
+                roles = [roles]  # Convert to a list
+                
+            print(roles, "passed roles")
+            
             # Get the JWT token from the request header
             token = None
             auth_header = request.headers.get('Authorization')
@@ -35,8 +42,9 @@ def role_required(allowed_roles):
                 # Access the role directly from the payload based on your JWT structure
                 user_role = payload.get('role')
                 print(user_role, "this is current user role")
+                print(roles, "this is allowed roles")
                 
-                if user_role not in allowed_roles:
+                if user_role not in roles:
                     return jsonify({"message": "Access Denied!"}), 403
                 
                 # You can set the user in g for access in the route function if needed

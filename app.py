@@ -18,26 +18,6 @@ from flask import jsonify
 
 from flask_security.datastore import SQLAlchemyUserDatastore
 
-# def role_required(allowed_roles):
-#     def decorator(f):
-#         @wraps(f)
-#         def decorated_function(*args, **kwargs):
-#             current_user = get_jwt_identity()
-#             if not current_user or current_user["role"] not in allowed_roles:
-#                 return jsonify({"message": "Access Denied!"}), 403
-#             return f(*args, **kwargs)
-#         return decorated_function
-#     return decorator
-
-# def generate_token(user):
-#     payload = {
-#         'id': user.id,
-#         'role': user.role_id,  # Adjust based on your role field
-#         'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Token expires in 1 hour
-#     }
-#     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
-
-
 
 class MultiTableUserDatastore(SQLAlchemyUserDatastore):
     def __init__(self, db, *user_models):

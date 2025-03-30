@@ -11,6 +11,8 @@ from celery.result import AsyncResult
 import uuid
 # from app import role_required, generate_token
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask import current_app as app
+
 
 def generate_uniqifier():
     return str(uuid.uuid4())
@@ -20,6 +22,9 @@ ALLOWED_EXTENSIONS = {'pdf'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+
 
 # def get_cache():
 #     return app.cache
@@ -48,7 +53,7 @@ def register_routes(app):
         print(id)
         print(result.ready())
         if result.ready():
-            return send_file(f'./backend/celery/db-backups/{result.result}')  # Send file as attachment
+            return send_file(f'./backend/celery/db-backups/{result.result}', as_attachment=True)  # Send file as attachment
         else:
             return jsonify({'status': 'processing'})
     
@@ -112,6 +117,8 @@ def register_routes(app):
         print("committing")
         try:
             db.session.commit()
+            cache = app.cache
+            cache.delete("customers_list_all")
             return jsonify({"message": "Customer registered successfully"}), 201
         except Exception as e:
             print(e)
@@ -165,6 +172,8 @@ def register_routes(app):
         db.session.add(new_professional)
         try:
             db.session.commit()
+            cache = app.cache
+            cache.delete("professionals_list_all")
             return jsonify({"message": "Customer registered successfully"}), 201
         except Exception as e:
             print(e)

@@ -675,7 +675,9 @@ export default {
                     'Authorization': `Bearer ${this.$store.state.auth_token}`,
                 },
                 });
-                return await res.json();
+                const data = await res.json();
+                console.log("Fetched data from", ":", data); // Debug response
+                return data;
             } catch (error) {
                 console.error("Error fetching data:", error);
                 return [];
@@ -687,6 +689,8 @@ export default {
             this.professionals = await this.fetchData('/api/professionals');
             this.serviceRequests = await this.fetchData('/api/service_requests');
             this.customers = await this.fetchData('/api/customers'); // Add this line
+            console.log(this.professionals)
+            console.log("above are fetched pro")
         },
         
         openAddServiceModal() {

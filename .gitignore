@@ -13,3 +13,6 @@ crediantial-notes.txt
 .qodo
 
 ./backend/celery/db-backups/
+
+celerybeat-schedule
+

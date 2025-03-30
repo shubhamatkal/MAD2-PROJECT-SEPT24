@@ -408,8 +408,7 @@ class ProfessionalListAPI(Resource):
     @cache.cached(timeout = 3600, key_prefix = "professionals_list_all")
     def get(self):
         try :
-            professionals = Professional.query.all()
-            return professionals
+            print("inside professional api")
             print("inside get of professional list api")
             print("Headers Received:", request.headers)  # Debug request headers
             current_user = get_jwt_identity()
@@ -1086,6 +1085,9 @@ class BookProfessionalResource(Resource):
         
             db.session.add(new_service_request)
             db.session.commit()
+            #remove cache or service requests list , for all 
+            cache.delete("service_requests_all_v2")
+            cache.delete_memoized(ProfessionalServiceRequestsResource.get, ProfessionalServiceRequestsResource, data['professional_id'])
             return {'message': 'Booking successful'}, 200
         except Exception as e:
             db.session.rollback()
@@ -1129,44 +1131,53 @@ class UpdateServiceRequestStatusResource(Resource):
     def get(self, request_id):
         try:
             print(f"Fetching service request with ID: {request_id}")
-
+            
+            # Query with explicit column names to avoid ambiguity
             service_request = (
                 db.session.query(
                     ServiceRequest.id,
-                    Service.service_name,
-                    Customer.customer_name,
-                    Professional.professional_name,
+                    Service.name.label('service_name'),
+                    Customer.full_name.label('customer_name'),
+                    Professional.full_name.label('professional_name'),
                     ServiceRequest.date_of_request,
                     ServiceRequest.date_of_completion,
                     ServiceRequest.service_status,
                     ServiceRequest.remarks,
+                    ServiceRequest.rating,
+                    ServiceRequest.rating_remarks,
+                    ServiceRequest.rated_at
                 )
                 .join(Service, Service.id == ServiceRequest.service_id)
                 .join(Customer, Customer.id == ServiceRequest.customer_id)
-                .outerjoin(Professional, Professional.id == ServiceRequest.professional_id)  # Outer join for nullable professional
+                .outerjoin(Professional, Professional.id == ServiceRequest.professional_id)
                 .filter(ServiceRequest.id == request_id)
                 .first()
             )
 
             if not service_request:
-                return {'message': 'Service request not found', 'error': 'Not Found'}, 404
+                return {'message': 'Service request not found'}, 404
 
-            # Convert query result tuple to dictionary
-            service_request_dict = {
+            # Create response dictionary from the query result
+            # Using the explicit labels we defined in the query
+            result = {
                 'id': service_request.id,
                 'service_name': service_request.service_name,
                 'customer_name': service_request.customer_name,
                 'professional_name': service_request.professional_name,
-                'date_of_request': service_request.date_of_request,
-                'date_of_completion': service_request.date_of_completion,
+                'date_of_request': service_request.date_of_request.isoformat() if service_request.date_of_request else None,
+                'date_of_completion': service_request.date_of_completion.isoformat() if service_request.date_of_completion else None,
                 'service_status': service_request.service_status,
                 'remarks': service_request.remarks,
+                'rating': service_request.rating,
+                'rating_remarks': service_request.rating_remarks,
+                'rated_at': service_request.rated_at.isoformat() if service_request.rated_at else None
             }
 
-            return service_request_dict, 200  # Return JSON response
+            return result, 200
 
         except Exception as e:
             print(f"Error in fetching service request: {str(e)}")
+            db.session.rollback()  # Roll back the session in case of error
             return {'message': 'An error occurred while fetching service request', 'error': str(e)}, 500
 
 

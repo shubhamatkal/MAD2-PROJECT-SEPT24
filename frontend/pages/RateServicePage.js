@@ -89,7 +89,7 @@ export default {
 		  const data = await response.json();
 		  if (response.ok) {
 			alert("Thank you for your feedback!");
-			this.$router.push("/home"); // Redirect to home after rating
+			this.$router.push("/home-customer"); // Redirect to home after rating
 		  } else {
 			alert(data.message || "Failed to submit rating");
 		  }

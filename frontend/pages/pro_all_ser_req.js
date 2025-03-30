@@ -3,9 +3,6 @@ export default {
 		<div class="card">
 		<div class="card-header d-flex justify-content-between align-items-center">
 		<h2 class="mb-0">Service Request History</h2>
-		<router-link to="/pro_full_history" class="btn btn-primary btn-sm">
-			View All History
-		</router-link>
 		</div>
 		<div class="card-body">
 		<table class="table table-striped" v-if="serviceHistory.length > 0">

@@ -1,0 +1,2 @@
+id,full_name,pin_code,role_id,address,email,password,is_active,fs_uniquifier,source_table
+1,Shivam Pandey,111000,1,"mumbai, mh",shivam@cus.a2z.com,$2b$12$AcFMB14GHZC82gT5irzXjeBeS5vET9cpBPRJN7JT0IuwlMVTa.UsG,True,694d4cfd-f82e-4843-9591-a0b43e9a5a86,customer
