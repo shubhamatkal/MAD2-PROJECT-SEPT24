@@ -1,0 +1,180 @@
+openapi: 3.0.0
+info:
+  title: Service API
+  version: 1.0.0
+  description: API for managing professionals, service requests, and customers
+paths:
+  /service-requests/{request_id}:
+    put:
+      summary: Update service request status
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Status updated successfully
+  /professionals/service/{service_id}:
+    get:
+      summary: Get professionals by service
+      parameters:
+        - name: service_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of professionals
+  /book:
+    post:
+      summary: Book a professional
+      responses:
+        '201':
+          description: Professional booked successfully
+  /professionals/{professional_id}:
+    get:
+      summary: Get professional details
+      parameters:
+        - name: professional_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Professional details
+  /professionals:
+    get:
+      summary: Get list of professionals
+      responses:
+        '200':
+          description: List of professionals
+  /service_requests:
+    get:
+      summary: Get list of service requests
+      responses:
+        '200':
+          description: List of service requests
+  /services/{service_id}:
+    get:
+      summary: Get service details
+      parameters:
+        - name: service_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Service details
+  /services:
+    get:
+      summary: Get list of services
+      responses:
+        '200':
+          description: List of services
+  /service-requests/professional/{professional_id}:
+    get:
+      summary: Get professional service requests
+      parameters:
+        - name: professional_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of service requests
+  /customer_service_requests:
+    get:
+      summary: Get customer service requests
+      responses:
+        '200':
+          description: List of customer service requests
+  /service_requests/{request_id}/close:
+    put:
+      summary: Close a service request
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Service request closed
+  /service-requests/{request_id}/update-status:
+    put:
+      summary: Update service request status
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Status updated
+  /service-requests/{request_id}/rate:
+    post:
+      summary: Rate a service request
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Rating submitted
+  /customers:
+    get:
+      summary: Get list of customers
+      responses:
+        '200':
+          description: List of customers
+  /customers/{customer_id}/toggle-status:
+    put:
+      summary: Toggle customer status
+      parameters:
+        - name: customer_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Customer status updated
+  /blockprofessional/{professional_id}:
+    put:
+      summary: Block or unblock a professional
+      parameters:
+        - name: professional_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Professional status updated
+  /service_request_details/{request_id}:
+    get:
+      summary: Get service request details
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Service request details
+  /rate_service_request:
+    post:
+      summary: Rate a service request
+      responses:
+        '200':
+          description: Rating submitted
